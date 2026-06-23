@@ -3,27 +3,45 @@ import { getCurrentUser } from "@/lib/auth";
 import InventoryClient from "@/components/inventory/inventory-client";
 
 export default async function InventoryPage() {
-  const user = await getCurrentUser();
-  const supabase = createAdminClient();
+  await getCurrentUser(); // auth check
+  const db = createAdminClient();
 
-  const [{ data: brewing }, { data: batches }, { data: allocations }] = await Promise.all([
-    supabase.from("brewing_stock").select("*").order("bean_type"),
-    supabase.from("bean_batches").select("*").order("created_at", { ascending: false }),
-    supabase
+  const [{ data: brewing }, { data: allocations }] = await Promise.all([
+    db.from("brewing_stock").select("*").order("bean_type"),
+    db
       .from("stock_allocations")
-      .select("*, bean_batch:bean_batches(bean_type, supplier)")
+      .select("*, bean_batch:bean_batches(bean_type)")
       .order("timestamp", { ascending: false })
-      .limit(50),
+      .limit(100),
   ]);
+
+  // Build batches with per-pool allocation sums
+  const { data: rawBatches } = await db
+    .from("bean_batches")
+    .select("*, stock_allocations(to_pool, qty_grams)")
+    .order("created_at", { ascending: false });
+
+  const batches = (rawBatches ?? []).map((b) => {
+    const allocs: { to_pool: string; qty_grams: number }[] = b.stock_allocations ?? [];
+    return {
+      ...b,
+      brewing_allocated: allocs
+        .filter((a) => a.to_pool === "brewing")
+        .reduce((s, a) => s + Number(a.qty_grams), 0),
+      retail_allocated: allocs
+        .filter((a) => a.to_pool === "retail")
+        .reduce((s, a) => s + Number(a.qty_grams), 0),
+    };
+  });
 
   return (
     <div className="p-6">
       <h1 className="text-xl font-semibold text-stone-900 mb-6">Bean Inventory</h1>
       <InventoryClient
         brewing={brewing ?? []}
-        batches={batches ?? []}
+        batches={batches}
         allocations={allocations ?? []}
-        user={user!}
+        user={(await getCurrentUser())!}
       />
     </div>
   );

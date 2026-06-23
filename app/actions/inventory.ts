@@ -4,39 +4,21 @@ import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser } from "@/lib/auth";
 
-export async function addBeanBatch(data: {
+export async function createBatch(data: {
   bean_type: string;
-  roast_date: string;
-  supplier: string;
-  cost_per_kg: number;
-  qty_received_grams: number;
+  total_grams: number;
+  brewing_grams: number;
+  retail_grams: number;
 }) {
   const user = await getCurrentUser();
   if (!user) throw new Error("Unauthorized");
 
   const db = createAdminClient();
-  const { error } = await db.from("bean_batches").insert({
-    ...data,
-    added_by: user.id,
-  });
-
-  if (error) throw new Error(error.message);
-  revalidatePath("/inventory");
-}
-
-export async function allocateBatch(data: {
-  from_batch_id: string;
-  to_pool: "retail" | "brewing";
-  qty_grams: number;
-}) {
-  const user = await getCurrentUser();
-  if (!user || user.role === "staff") throw new Error("Unauthorized");
-
-  const db = createAdminClient();
-  const { error } = await db.rpc("allocate_bean_batch", {
-    p_batch_id: data.from_batch_id,
-    p_pool: data.to_pool,
-    p_qty_grams: data.qty_grams,
+  const { error } = await db.rpc("create_batch_with_allocation", {
+    p_bean_type: data.bean_type.trim(),
+    p_total_grams: data.total_grams,
+    p_brewing_grams: data.brewing_grams,
+    p_retail_grams: data.retail_grams,
     p_actor_id: user.id,
   });
 
