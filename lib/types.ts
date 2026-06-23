@@ -94,8 +94,8 @@ export interface DrinkProduct {
   id: string;
   name: string;
   category: string;
-  bean_type_used: string;
-  grams_per_serving: number;
+  bean_type_used: string | null;   // null = non-coffee drink
+  grams_per_serving: number | null;
   price: number;
   active: boolean;
 }
@@ -116,6 +116,7 @@ export interface SimpleProduct {
   cost_price: number;
   selling_price: number;
   low_stock_threshold: number;
+  usage_type: "sale" | "cafe_use";
 }
 
 export interface BeanBatch {

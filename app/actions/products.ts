@@ -14,8 +14,8 @@ export async function upsertDrinkProduct(data: {
   id?: string;
   name: string;
   category: string;
-  bean_type_used: string;
-  grams_per_serving: number;
+  bean_type_used: string | null;
+  grams_per_serving: number | null;
   price: number;
   active: boolean;
 }) {

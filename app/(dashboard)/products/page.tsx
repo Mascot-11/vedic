@@ -9,11 +9,21 @@ export default async function ProductsPage() {
 
   const supabase = createAdminClient();
 
-  const [{ data: drinks }, { data: retailStocks }, { data: simpleProducts }] = await Promise.all([
+  const [
+    { data: drinks },
+    { data: retailStocks },
+    { data: simpleProducts },
+    { data: beanBatches },
+  ] = await Promise.all([
     supabase.from("drink_products").select("*").order("name"),
     supabase.from("retail_stock").select("*").order("bean_type"),
     supabase.from("simple_products").select("*").order("name"),
+    // Distinct bean types that have been received (for the drink product form)
+    supabase.from("bean_batches").select("bean_type").order("bean_type"),
   ]);
+
+  // Deduplicate bean types
+  const beanTypes = [...new Set((beanBatches ?? []).map((b) => b.bean_type))];
 
   return (
     <div className="p-6">
@@ -22,6 +32,7 @@ export default async function ProductsPage() {
         drinks={drinks ?? []}
         retailStocks={retailStocks ?? []}
         simpleProducts={simpleProducts ?? []}
+        beanTypes={beanTypes}
         user={user}
       />
     </div>

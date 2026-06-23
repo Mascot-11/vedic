@@ -13,10 +13,17 @@ interface ProductsClientProps {
   drinks: DrinkProduct[];
   retailStocks: RetailStock[];
   simpleProducts: SimpleProduct[];
+  beanTypes: string[];
   user: User;
 }
 
-export default function ProductsClient({ drinks, retailStocks, simpleProducts, user }: ProductsClientProps) {
+export default function ProductsClient({
+  drinks,
+  retailStocks,
+  simpleProducts,
+  beanTypes,
+  user,
+}: ProductsClientProps) {
   const [editDrink, setEditDrink] = useState<DrinkProduct | null | "new">(null);
   const [editSimple, setEditSimple] = useState<SimpleProduct | null | "new">(null);
 
@@ -36,6 +43,13 @@ export default function ProductsClient({ drinks, retailStocks, simpleProducts, u
               <Plus className="h-3.5 w-3.5 mr-1" /> Add Drink
             </Button>
           </div>
+          {beanTypes.length === 0 && (
+            <div className="mb-3 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
+              No bean batches recorded yet. Go to{" "}
+              <strong>Inventory → Record Batch</strong> first so you can assign
+              the correct bean type to each drink.
+            </div>
+          )}
           <div className="bg-white rounded-xl border border-stone-200 overflow-hidden">
             <table className="w-full text-sm">
               <thead className="bg-stone-50 border-b border-stone-200">
@@ -72,6 +86,13 @@ export default function ProductsClient({ drinks, retailStocks, simpleProducts, u
                     </td>
                   </tr>
                 ))}
+                {drinks.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="px-4 py-8 text-center text-sm text-stone-400">
+                      No drink products yet.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -97,6 +118,13 @@ export default function ProductsClient({ drinks, retailStocks, simpleProducts, u
                     <td className="px-4 py-3 text-right">Rs. {Number(r.selling_price).toFixed(2)}</td>
                   </tr>
                 ))}
+                {retailStocks.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="px-4 py-8 text-center text-sm text-stone-400">
+                      No retail bean stock yet.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -126,7 +154,13 @@ export default function ProductsClient({ drinks, retailStocks, simpleProducts, u
                     <td className="px-4 py-3 font-medium text-stone-900">{s.name}</td>
                     <td className="px-4 py-3 text-stone-600">{s.category}</td>
                     <td className="px-4 py-3 text-right">
-                      <span className={s.qty_available <= s.low_stock_threshold ? "text-red-600 font-medium" : "text-stone-600"}>
+                      <span
+                        className={
+                          s.qty_available <= s.low_stock_threshold
+                            ? "text-red-600 font-medium"
+                            : "text-stone-600"
+                        }
+                      >
                         {s.qty_available}
                       </span>
                     </td>
@@ -141,6 +175,13 @@ export default function ProductsClient({ drinks, retailStocks, simpleProducts, u
                     </td>
                   </tr>
                 ))}
+                {simpleProducts.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-8 text-center text-sm text-stone-400">
+                      No items yet.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -150,6 +191,7 @@ export default function ProductsClient({ drinks, retailStocks, simpleProducts, u
       {editDrink !== null && (
         <DrinkProductDialog
           product={editDrink === "new" ? null : editDrink}
+          beanTypes={beanTypes}
           onClose={() => setEditDrink(null)}
         />
       )}
