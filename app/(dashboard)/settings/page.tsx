@@ -1,0 +1,19 @@
+import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import SettingsClient from "@/components/settings/settings-client";
+
+export default async function SettingsPage() {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "superadmin") redirect("/");
+
+  const supabase = await createClient();
+  const { data: settings } = await supabase.from("shop_settings").select("*").single();
+
+  return (
+    <div className="p-6 max-w-lg">
+      <h1 className="text-xl font-semibold text-stone-900 mb-6">Settings</h1>
+      <SettingsClient settings={settings} />
+    </div>
+  );
+}
