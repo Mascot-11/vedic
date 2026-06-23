@@ -36,7 +36,7 @@ export default function NewOrderDialog({ table, onClose }: NewOrderDialogProps) 
             Cancel
           </Button>
           <Button onClick={handleOpen} disabled={pending}>
-            {pending ? "Opening…" : "Open Tab"}
+            {pending ? <><Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />Opening…</> : "Open Tab"}
           </Button>
         </div>
       </DialogContent>
