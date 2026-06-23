@@ -5,15 +5,22 @@ import SettingsClient from "@/components/settings/settings-client";
 
 export default async function SettingsPage() {
   const user = await getCurrentUser();
-  if (!user || user.role !== "superadmin") redirect("/");
+  if (!user || user.role === "staff") redirect("/");
 
-  const supabase = createAdminClient();
-  const { data: settings } = await supabase.from("shop_settings").select("*").single();
+  const db = createAdminClient();
+  const [{ data: settings }, { data: tables }] = await Promise.all([
+    db.from("shop_settings").select("*").single(),
+    db.from("tables").select("*").order("label"),
+  ]);
 
   return (
-    <div className="p-6 max-w-lg">
+    <div className="p-6">
       <h1 className="text-xl font-semibold text-stone-900 mb-6">Settings</h1>
-      <SettingsClient settings={settings} />
+      <SettingsClient
+        settings={settings}
+        tables={tables ?? []}
+        isSuperadmin={user.role === "superadmin"}
+      />
     </div>
   );
 }

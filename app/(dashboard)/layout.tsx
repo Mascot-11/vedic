@@ -7,11 +7,15 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const user = await getCurrentUser();
-
-  if (!user) {
+  let user;
+  try {
+    user = await getCurrentUser();
+  } catch {
     redirect("/login");
   }
+
+  if (!user) redirect("/login");
+  if (!user.active) redirect("/login");
 
   return (
     <div className="flex h-full min-h-screen bg-stone-50">

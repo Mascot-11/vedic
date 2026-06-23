@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-interface LoginFormProps {
+interface Props {
   action: (formData: FormData) => Promise<{ error: string } | void>;
 }
 
-export default function LoginForm({ action }: LoginFormProps) {
+export default function LoginForm({ action }: Props) {
   const [state, formAction, pending] = useActionState(
     async (_prev: { error: string } | null, formData: FormData) => {
       const result = await action(formData);
@@ -43,7 +43,9 @@ export default function LoginForm({ action }: LoginFormProps) {
         />
       </div>
       {state?.error && (
-        <p className="text-sm text-red-600">{state.error}</p>
+        <div className="rounded-md bg-red-50 border border-red-200 px-3 py-2">
+          <p className="text-sm text-red-700">{state.error}</p>
+        </div>
       )}
       <Button type="submit" className="w-full" disabled={pending}>
         {pending ? "Signing in…" : "Sign in"}
