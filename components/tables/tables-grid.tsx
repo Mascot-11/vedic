@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Plus, Clock } from "lucide-react";
+import { Plus, Clock, UtensilsCrossed } from "lucide-react";
 import { Table, Order, User } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import NewOrderDialog from "./new-order-dialog";
@@ -16,8 +16,10 @@ interface TablesGridProps {
 function timeAgo(dateStr: string) {
   const mins = Math.floor((Date.now() - new Date(dateStr).getTime()) / 60000);
   if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m`;
-  return `${Math.floor(mins / 60)}h ${mins % 60}m`;
+  if (mins < 60) return `${mins}m ago`;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
 export default function TablesGrid({ tables, openOrders, user }: TablesGridProps) {
@@ -27,42 +29,68 @@ export default function TablesGrid({ tables, openOrders, user }: TablesGridProps
   const occupied = tables.filter((t) => orderByTable[t.id]);
   const free = tables.filter((t) => !orderByTable[t.id]);
 
+  if (tables.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 text-center">
+        <div className="h-14 w-14 rounded-2xl bg-white border border-stone-200 flex items-center justify-center mb-4 shadow-sm">
+          <UtensilsCrossed className="h-6 w-6 text-stone-300" />
+        </div>
+        <p className="font-semibold text-stone-600">No tables yet</p>
+        <p className="text-sm text-stone-400 mt-1">Go to Settings → Tables to add them</p>
+      </div>
+    );
+  }
+
   return (
     <>
-      <div className="space-y-6">
-        {/* Occupied tables */}
+      <div className="space-y-8">
+        {/* Occupied */}
         {occupied.length > 0 && (
           <section>
-            <p className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-3">
-              Open tabs — {occupied.length}
-            </p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+              <p className="text-xs font-bold uppercase tracking-widest text-stone-400">
+                Open tabs · {occupied.length}
+              </p>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
               {occupied.map((table) => {
                 const order = orderByTable[table.id];
-                const itemCount = order.order_items.length;
                 const total = Number(order.subtotal_amount ?? 0);
+                const count = order.order_items.length;
                 return (
                   <Link
                     key={table.id}
                     href={`/orders/${order.id}`}
-                    className="group relative rounded-2xl bg-amber-50 border-2 border-amber-300 p-4 flex flex-col gap-3 hover:border-amber-400 hover:bg-amber-100 active:scale-[0.98] transition-all"
+                    className="group relative rounded-2xl p-4 flex flex-col gap-2 active:scale-[0.97] transition-transform select-none overflow-hidden"
+                    style={{
+                      background: "linear-gradient(135deg, oklch(0.96 0.05 75), oklch(0.92 0.07 70))",
+                      border: "1px solid oklch(0.86 0.08 70)",
+                      boxShadow: "0 1px 3px oklch(0.7 0.08 70 / 0.2), 0 4px 16px oklch(0.7 0.08 70 / 0.08)",
+                    }}
                   >
-                    <div className="flex items-start justify-between">
-                      <span className="text-base font-bold text-stone-900">{table.label}</span>
-                      <span className="flex items-center gap-1 text-[11px] text-amber-600 font-medium">
+                    {/* Decorative circle */}
+                    <div className="absolute -right-4 -top-4 h-20 w-20 rounded-full opacity-20"
+                      style={{ background: "oklch(0.72 0.14 58)" }} />
+
+                    <div className="flex items-start justify-between relative">
+                      <span className="text-sm font-bold text-stone-800">{table.label}</span>
+                      <span className="flex items-center gap-1 text-[10px] font-semibold"
+                        style={{ color: "oklch(0.52 0.1 58)" }}>
                         <Clock className="h-3 w-3" />
                         {timeAgo(order.opened_at)}
                       </span>
                     </div>
-                    <div>
-                      <p className="text-2xl font-bold text-stone-900">
+
+                    <div className="relative">
+                      <p className="text-2xl font-extrabold text-stone-900 leading-none">
                         Rs.{total.toFixed(0)}
                       </p>
-                      <p className="text-xs text-amber-700 mt-0.5">
-                        {itemCount} item{itemCount !== 1 ? "s" : ""}
+                      <p className="text-xs font-medium mt-1"
+                        style={{ color: "oklch(0.5 0.08 58)" }}>
+                        {count} item{count !== 1 ? "s" : ""}
                       </p>
                     </div>
-                    <div className="absolute top-3 right-3 h-2.5 w-2.5 rounded-full bg-amber-400 animate-pulse" />
                   </Link>
                 );
               })}
@@ -70,36 +98,44 @@ export default function TablesGrid({ tables, openOrders, user }: TablesGridProps
           </section>
         )}
 
-        {/* Free tables */}
+        {/* Free */}
         {free.length > 0 && (
           <section>
-            <p className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-3">
-              Available — {free.length}
+            <p className="text-xs font-bold uppercase tracking-widest text-stone-400 mb-3">
+              Available · {free.length}
             </p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
               {free.map((table) => (
                 <button
                   key={table.id}
                   onClick={() => setNewOrderTable(table)}
-                  className="rounded-2xl border-2 border-dashed border-stone-250 bg-white p-4 flex flex-col gap-3 hover:border-stone-400 hover:bg-stone-50 active:scale-[0.98] transition-all text-left"
-                  style={{ borderColor: "oklch(0.88 0.005 80)" }}
+                  className="group rounded-2xl p-4 flex flex-col gap-3 text-left active:scale-[0.97] transition-all select-none"
+                  style={{
+                    background: "oklch(1 0 0)",
+                    border: "1.5px dashed oklch(0.85 0.008 75)",
+                    boxShadow: "0 1px 2px oklch(0 0 0 / 0.04)",
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.7 0.01 55)";
+                    (e.currentTarget as HTMLElement).style.background = "oklch(0.98 0.004 75)";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.85 0.008 75)";
+                    (e.currentTarget as HTMLElement).style.background = "oklch(1 0 0)";
+                  }}
                 >
-                  <span className="text-base font-semibold text-stone-700">{table.label}</span>
-                  <div className="flex items-center gap-1.5 text-stone-400">
-                    <Plus className="h-4 w-4" />
-                    <span className="text-sm">Open tab</span>
+                  <span className="text-sm font-bold text-stone-700">{table.label}</span>
+                  <div className="flex items-center gap-1.5">
+                    <div className="h-6 w-6 rounded-full border border-stone-200 flex items-center justify-center"
+                      style={{ color: "oklch(0.6 0.01 55)" }}>
+                      <Plus className="h-3.5 w-3.5" />
+                    </div>
+                    <span className="text-xs font-medium text-stone-400">Open tab</span>
                   </div>
                 </button>
               ))}
             </div>
           </section>
-        )}
-
-        {tables.length === 0 && (
-          <div className="text-center py-20">
-            <p className="text-stone-400 text-sm">No tables yet.</p>
-            <p className="text-stone-300 text-xs mt-1">Go to Settings to add tables.</p>
-          </div>
         )}
       </div>
 
