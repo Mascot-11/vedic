@@ -19,6 +19,7 @@ const schema = z.object({
   cost_price: z.coerce.number().nonnegative(),
   selling_price: z.coerce.number().nonnegative(),
   low_stock_threshold: z.coerce.number().int().nonnegative(),
+  qty_available: z.coerce.number().int().nonnegative(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -33,14 +34,17 @@ export default function SimpleProductDialog({ product, onClose }: Props) {
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm<FormData>({
     resolver: standardSchemaResolver(schema),
-    defaultValues: product ?? {
-      name: "",
-      category: "Snacks",
-      usage_type: "sale",
-      cost_price: 0,
-      selling_price: 0,
-      low_stock_threshold: 5,
-    },
+    defaultValues: product
+      ? { ...product }
+      : {
+          name: "",
+          category: "Snacks",
+          usage_type: "sale",
+          cost_price: 0,
+          selling_price: 0,
+          low_stock_threshold: 5,
+          qty_available: 0,
+        },
   });
 
   const usageType = watch("usage_type");
@@ -110,9 +114,16 @@ export default function SimpleProductDialog({ product, onClose }: Props) {
             )}
           </div>
 
-          <div className="space-y-1.5">
-            <Label>Low Stock Alert Below</Label>
-            <Input type="number" {...register("low_stock_threshold")} />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>Low Stock Alert Below</Label>
+              <Input type="number" {...register("low_stock_threshold")} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>{product ? "Stock in Hand" : "Initial Stock"}</Label>
+              <Input type="number" min="0" {...register("qty_available")} />
+              {errors.qty_available && <p className="text-xs text-red-500">{errors.qty_available.message}</p>}
+            </div>
           </div>
 
           <div className="flex justify-end gap-2 pt-1">
