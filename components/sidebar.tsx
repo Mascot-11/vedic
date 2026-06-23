@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Coffee,
   LayoutGrid,
@@ -81,6 +81,13 @@ interface SidebarProps {
 
 export default function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  async function handleLogout() {
+    await logout();
+    router.push("/login");
+    router.refresh();
+  }
   const visible = navItems.filter((item) => item.roles.includes(user.role));
 
   return (
@@ -116,15 +123,13 @@ export default function Sidebar({ user }: SidebarProps) {
         <div className="px-3 py-1.5">
           <p className="text-xs font-medium text-stone-300 truncate">{user.name}</p>
         </div>
-        <form action={logout}>
-          <button
-            type="submit"
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium text-stone-400 hover:bg-stone-800 hover:text-white transition-colors"
-          >
-            <LogOut className="h-4 w-4 shrink-0" />
-            Sign out
-          </button>
-        </form>
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium text-stone-400 hover:bg-stone-800 hover:text-white transition-colors"
+        >
+          <LogOut className="h-4 w-4 shrink-0" />
+          Sign out
+        </button>
       </div>
     </aside>
   );

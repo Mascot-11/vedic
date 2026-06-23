@@ -1,12 +1,11 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function login(
   formData: FormData
-): Promise<{ error: string } | void> {
+): Promise<{ error: string } | { success: true }> {
   const email = (formData.get("email") as string).trim().toLowerCase();
   const password = formData.get("password") as string;
 
@@ -31,8 +30,6 @@ export async function login(
   const authUserId = signInData.user?.id;
   if (!authUserId) return { error: "Sign-in failed. Try again." };
 
-  // Use the admin client + the auth user ID returned directly from signIn
-  // so we don't depend on the session cookie being available mid-request
   const db = createAdminClient();
   const { data: profile } = await db
     .from("users")
@@ -49,11 +46,11 @@ export async function login(
     return { error: "Your account has been deactivated. Contact the administrator." };
   }
 
-  redirect("/");
+  return { success: true };
 }
 
 export async function logout() {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  redirect("/login");
+  // Client handles navigation after logout
 }

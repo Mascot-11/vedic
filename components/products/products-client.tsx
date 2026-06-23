@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Pencil } from "lucide-react";
-import { DrinkProduct, RetailStock, SimpleProduct, User } from "@/lib/types";
+import { DrinkProduct, SimpleProduct, User } from "@/lib/types";
 import DrinkProductDialog from "./drink-product-dialog";
 import SimpleProductDialog from "./simple-product-dialog";
 
@@ -65,7 +65,6 @@ function SimpleProductTable({
 
 interface ProductsClientProps {
   drinks: DrinkProduct[];
-  retailStocks: RetailStock[];
   simpleProducts: SimpleProduct[];
   beanTypes: string[];
   user: User;
@@ -73,10 +72,8 @@ interface ProductsClientProps {
 
 export default function ProductsClient({
   drinks,
-  retailStocks,
   simpleProducts,
   beanTypes,
-  user,
 }: ProductsClientProps) {
   const [editDrink, setEditDrink] = useState<DrinkProduct | null | "new">(null);
   const [editSimple, setEditSimple] = useState<SimpleProduct | null | "new">(null);
@@ -86,8 +83,7 @@ export default function ProductsClient({
       <Tabs defaultValue="drinks">
         <TabsList>
           <TabsTrigger value="drinks">Drinks</TabsTrigger>
-          <TabsTrigger value="retail">Retail Beans</TabsTrigger>
-          <TabsTrigger value="simple">Snacks & Pastries</TabsTrigger>
+          <TabsTrigger value="simple">Snacks & Supplies</TabsTrigger>
         </TabsList>
 
         <TabsContent value="drinks" className="mt-4">
@@ -156,37 +152,6 @@ export default function ProductsClient({
           </div>
         </TabsContent>
 
-        <TabsContent value="retail" className="mt-4">
-          <div className="bg-white rounded-xl border border-stone-200 overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-stone-50 border-b border-stone-200">
-                <tr>
-                  <th className="text-left px-4 py-2.5 font-medium text-stone-600">Bean Type</th>
-                  <th className="text-left px-4 py-2.5 font-medium text-stone-600">Package Size</th>
-                  <th className="text-right px-4 py-2.5 font-medium text-stone-600">Qty Available</th>
-                  <th className="text-right px-4 py-2.5 font-medium text-stone-600">Selling Price</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-stone-100">
-                {retailStocks.map((r) => (
-                  <tr key={r.id}>
-                    <td className="px-4 py-3 font-medium text-stone-900">{r.bean_type}</td>
-                    <td className="px-4 py-3 text-stone-600">{r.packaging_size}</td>
-                    <td className="px-4 py-3 text-right text-stone-600">{r.qty_available}</td>
-                    <td className="px-4 py-3 text-right">Rs. {Number(r.selling_price).toFixed(2)}</td>
-                  </tr>
-                ))}
-                {retailStocks.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="px-4 py-8 text-center text-sm text-stone-400">
-                      No retail bean stock yet.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </TabsContent>
 
         <TabsContent value="simple" className="mt-4 space-y-6">
           <div className="flex justify-end">

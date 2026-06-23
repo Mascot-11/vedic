@@ -11,7 +11,7 @@ import { Search } from "lucide-react";
 interface Product {
   id: string;
   name: string;
-  product_type: "drink" | "retail_bean" | "simple";
+  product_type: "drink" | "simple";
   price: number;
   category: string;
 }

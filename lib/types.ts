@@ -2,8 +2,8 @@ export type Role = "superadmin" | "owner" | "staff";
 
 export type PaymentStatus = "paid" | "credit" | "partially_paid";
 export type OrderStatus = "open" | "closed";
-export type PoolType = "retail" | "brewing";
-export type ProductType = "drink" | "retail_bean" | "simple";
+export type PoolType = "brewing";
+export type ProductType = "drink" | "simple";
 export type StockReason =
   | "sale"
   | "sale_reversal"
@@ -100,14 +100,6 @@ export interface DrinkProduct {
   active: boolean;
 }
 
-export interface RetailStock {
-  id: string;
-  bean_type: string;
-  packaging_size: string;
-  qty_available: number;
-  selling_price: number;
-}
-
 export interface SimpleProduct {
   id: string;
   name: string;
@@ -122,9 +114,8 @@ export interface SimpleProduct {
 export interface BeanBatch {
   id: string;
   bean_type: string;
-  roast_date: string;
-  supplier: string;
-  cost_per_kg: number;
+  name: string | null;
+  remarks: string | null;
   qty_received_grams: number;
   added_by: string;
   created_at: string;

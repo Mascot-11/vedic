@@ -55,24 +55,6 @@ export async function upsertSimpleProduct(data: {
   revalidatePath("/products");
 }
 
-export async function upsertRetailStock(data: {
-  id?: string;
-  bean_type: string;
-  packaging_size: string;
-  qty_available: number;
-  selling_price: number;
-}) {
-  await requireOwner();
-  const db = createAdminClient();
-
-  const { id, ...rest } = data;
-  const { error } = id
-    ? await db.from("retail_stock").update(rest).eq("id", id)
-    : await db.from("retail_stock").insert(rest);
-
-  if (error) throw new Error(error.message);
-  revalidatePath("/products");
-}
 
 export async function toggleProductActive(
   table: "drink_products",

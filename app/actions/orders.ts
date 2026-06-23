@@ -45,7 +45,7 @@ export async function openOrder(tableId: string) {
 export async function addItemToOrder(
   orderId: string,
   productId: string,
-  productType: "drink" | "retail_bean" | "simple",
+  productType: "drink" | "simple",
   qty: number
 ) {
   const db = createAdminClient();
