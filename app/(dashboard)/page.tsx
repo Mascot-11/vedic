@@ -9,7 +9,7 @@ export default async function TablesPage() {
   const [{ data: tables }, { data: openOrders }] = await Promise.all([
     db.from("tables").select("*").eq("active", true).order("label"),
     db.from("orders")
-      .select("*, order_items(id, qty, unit_price, subtotal)")
+      .select("*, order_items(id, product_name, qty, unit_price, subtotal)")
       .eq("status", "open"),
   ]);
 

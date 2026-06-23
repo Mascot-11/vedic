@@ -2,14 +2,25 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Plus, Clock, UtensilsCrossed } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Plus, Clock, UtensilsCrossed, ArrowRight } from "lucide-react";
 import { Table, Order, User } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetFooter,
+} from "@/components/ui/sheet";
 import NewOrderDialog from "./new-order-dialog";
+
+type OrderItem = { id: string; product_name: string | null; qty: number; unit_price: number; subtotal: number };
+type OpenOrder = Order & { order_items: OrderItem[] };
 
 interface TablesGridProps {
   tables: Table[];
-  openOrders: (Order & { order_items: { id: string; qty: number; unit_price: number; subtotal: number }[] })[];
+  openOrders: OpenOrder[];
   user: User;
 }
 
@@ -23,9 +34,11 @@ function timeAgo(dateStr: string) {
 }
 
 export default function TablesGrid({ tables, openOrders, user }: TablesGridProps) {
+  const router = useRouter();
   const [newOrderTable, setNewOrderTable] = useState<Table | null>(null);
-  const orderByTable = Object.fromEntries(openOrders.map((o) => [o.table_id, o]));
+  const [drilldown, setDrilldown] = useState<{ table: Table; order: OpenOrder } | null>(null);
 
+  const orderByTable = Object.fromEntries(openOrders.map((o) => [o.table_id, o]));
   const occupied = tables.filter((t) => orderByTable[t.id]);
   const free = tables.filter((t) => !orderByTable[t.id]);
 
@@ -40,6 +53,10 @@ export default function TablesGrid({ tables, openOrders, user }: TablesGridProps
       </div>
     );
   }
+
+  const dd = drilldown;
+  const ddItems = dd?.order.order_items ?? [];
+  const ddTotal = Number(dd?.order.subtotal_amount ?? 0);
 
   return (
     <>
@@ -59,17 +76,16 @@ export default function TablesGrid({ tables, openOrders, user }: TablesGridProps
                 const total = Number(order.subtotal_amount ?? 0);
                 const count = order.order_items.length;
                 return (
-                  <Link
+                  <button
                     key={table.id}
-                    href={`/orders/${order.id}`}
-                    className="group relative rounded-2xl p-4 flex flex-col gap-2 active:scale-[0.97] transition-transform select-none overflow-hidden"
+                    onClick={() => setDrilldown({ table, order })}
+                    className="group relative rounded-2xl p-4 flex flex-col gap-2 active:scale-[0.97] transition-transform select-none overflow-hidden text-left w-full"
                     style={{
                       background: "linear-gradient(135deg, oklch(0.96 0.05 75), oklch(0.92 0.07 70))",
                       border: "1px solid oklch(0.86 0.08 70)",
                       boxShadow: "0 1px 3px oklch(0.7 0.08 70 / 0.2), 0 4px 16px oklch(0.7 0.08 70 / 0.08)",
                     }}
                   >
-                    {/* Decorative circle */}
                     <div className="absolute -right-4 -top-4 h-20 w-20 rounded-full opacity-20"
                       style={{ background: "oklch(0.72 0.14 58)" }} />
 
@@ -91,7 +107,7 @@ export default function TablesGrid({ tables, openOrders, user }: TablesGridProps
                         {count} item{count !== 1 ? "s" : ""}
                       </p>
                     </div>
-                  </Link>
+                  </button>
                 );
               })}
             </div>
@@ -138,6 +154,56 @@ export default function TablesGrid({ tables, openOrders, user }: TablesGridProps
           </section>
         )}
       </div>
+
+      {/* Drilldown sheet */}
+      <Sheet open={!!dd} onOpenChange={(open) => !open && setDrilldown(null)}>
+        <SheetContent side="bottom" showCloseButton className="rounded-t-3xl max-h-[80vh] overflow-y-auto pb-safe">
+          <SheetHeader className="pb-0">
+            <div className="flex items-center justify-between">
+              <SheetTitle className="text-base font-bold text-stone-900">
+                {dd?.table.label}
+              </SheetTitle>
+              {dd && (
+                <span className="flex items-center gap-1 text-xs font-semibold text-amber-600">
+                  <Clock className="h-3 w-3" />
+                  {timeAgo(dd.order.opened_at)}
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-stone-400">{ddItems.length} item{ddItems.length !== 1 ? "s" : ""}</p>
+          </SheetHeader>
+
+          {/* Items list */}
+          <div className="px-4 py-3 space-y-0.5">
+            {ddItems.map((item) => (
+              <div key={item.id} className="flex items-center justify-between py-2 border-b border-stone-100 last:border-0">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-xs font-bold text-stone-400 w-5 text-center shrink-0">×{item.qty}</span>
+                  <span className="text-sm text-stone-800 truncate">{item.product_name ?? "—"}</span>
+                </div>
+                <span className="text-sm font-semibold text-stone-900 shrink-0 ml-3">
+                  Rs.{Number(item.subtotal).toFixed(0)}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Total */}
+          <div className="mx-4 rounded-xl bg-stone-50 border border-stone-200 px-4 py-3 flex justify-between items-center">
+            <span className="text-sm font-semibold text-stone-500">Subtotal</span>
+            <span className="text-lg font-extrabold text-stone-900">Rs.{ddTotal.toFixed(0)}</span>
+          </div>
+
+          <SheetFooter className="pt-3">
+            <Button
+              className="w-full"
+              onClick={() => { if (dd) router.push(`/orders/${dd.order.id}`); }}
+            >
+              Open Order <ArrowRight className="h-4 w-4 ml-1.5" />
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
       {newOrderTable && (
         <NewOrderDialog
