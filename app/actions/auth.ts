@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentUser } from "@/lib/auth";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function login(
   formData: FormData
@@ -13,10 +13,12 @@ export async function login(
   if (!email || !password) return { error: "Email and password are required." };
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data: signInData, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
 
   if (error) {
-    // Don't expose internal error messages to the client
     if (
       error.message.toLowerCase().includes("invalid") ||
       error.message.toLowerCase().includes("not found")
@@ -26,13 +28,23 @@ export async function login(
     return { error: error.message };
   }
 
-  // Check the user's profile exists and is active
-  const user = await getCurrentUser();
-  if (!user) {
+  const authUserId = signInData.user?.id;
+  if (!authUserId) return { error: "Sign-in failed. Try again." };
+
+  // Use the admin client + the auth user ID returned directly from signIn
+  // so we don't depend on the session cookie being available mid-request
+  const db = createAdminClient();
+  const { data: profile } = await db
+    .from("users")
+    .select("active")
+    .eq("auth_id", authUserId)
+    .single();
+
+  if (!profile) {
     await supabase.auth.signOut();
     return { error: "Your account is not set up. Contact the administrator." };
   }
-  if (!user.active) {
+  if (!profile.active) {
     await supabase.auth.signOut();
     return { error: "Your account has been deactivated. Contact the administrator." };
   }
