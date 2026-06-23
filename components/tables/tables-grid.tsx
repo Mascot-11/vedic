@@ -36,7 +36,7 @@ export default function TablesGrid({ tables, openOrders, user }: TablesGridProps
             <p className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-3">
               Open tabs — {occupied.length}
             </p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
               {occupied.map((table) => {
                 const order = orderByTable[table.id];
                 const itemCount = order.order_items.length;
@@ -76,7 +76,7 @@ export default function TablesGrid({ tables, openOrders, user }: TablesGridProps
             <p className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-3">
               Available — {free.length}
             </p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
               {free.map((table) => (
                 <button
                   key={table.id}

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Plus, AlertTriangle } from "lucide-react";
+import { Plus, AlertTriangle, Package } from "lucide-react";
 import { BrewingStock, BeanBatch, User } from "@/lib/types";
 import AddBatchDialog from "./add-batch-dialog";
 import { cn } from "@/lib/utils";
@@ -21,129 +21,110 @@ export default function InventoryClient({ brewing, batches, allocations }: Props
   return (
     <>
       <Tabs defaultValue="stock">
-        <TabsList>
-          <TabsTrigger value="stock">Brewing Stock</TabsTrigger>
-          <TabsTrigger value="batches">Batches</TabsTrigger>
-          <TabsTrigger value="history">History</TabsTrigger>
+        <TabsList className="w-full sm:w-auto">
+          <TabsTrigger value="stock" className="flex-1 sm:flex-none">Stock</TabsTrigger>
+          <TabsTrigger value="batches" className="flex-1 sm:flex-none">Batches</TabsTrigger>
+          <TabsTrigger value="history" className="flex-1 sm:flex-none">History</TabsTrigger>
         </TabsList>
 
-        {/* ── Brewing Stock ── */}
+        {/* Brewing stock cards */}
         <TabsContent value="stock" className="mt-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {brewing.map((b) => {
-              const isLow = b.qty_remaining_grams <= b.low_stock_threshold_grams;
-              return (
-                <div
-                  key={b.id}
-                  className={cn(
-                    "bg-white rounded-xl border p-4",
-                    isLow ? "border-red-300 bg-red-50" : "border-stone-200"
-                  )}
-                >
-                  <div className="flex items-start justify-between">
-                    <p className="font-semibold text-stone-900">{b.bean_type}</p>
-                    {isLow && <AlertTriangle className="h-4 w-4 text-red-500 shrink-0" />}
+          {brewing.length === 0 ? (
+            <div className="text-center py-16">
+              <Package className="h-10 w-10 text-stone-200 mx-auto mb-3" />
+              <p className="text-stone-400 text-sm">No brewing stock yet.</p>
+              <p className="text-stone-300 text-xs mt-1">Add a batch to get started.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {brewing.map((b) => {
+                const isLow = b.qty_remaining_grams <= b.low_stock_threshold_grams;
+                return (
+                  <div
+                    key={b.id}
+                    className={cn(
+                      "rounded-2xl border p-4",
+                      isLow ? "border-red-200 bg-red-50" : "bg-white border-stone-200"
+                    )}
+                  >
+                    <div className="flex items-start justify-between gap-1">
+                      <p className="font-semibold text-stone-900 text-sm leading-tight">{b.bean_type}</p>
+                      {isLow && <AlertTriangle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />}
+                    </div>
+                    <p className="text-3xl font-bold mt-3 text-stone-900">
+                      {Number(b.qty_remaining_grams).toFixed(0)}
+                      <span className="text-sm font-normal text-stone-400 ml-1">g</span>
+                    </p>
+                    {isLow && (
+                      <p className="text-xs text-red-500 mt-1 font-medium">Low stock</p>
+                    )}
                   </div>
-                  <p className="text-2xl font-bold mt-2 text-stone-900">
-                    {Number(b.qty_remaining_grams).toFixed(0)}
-                    <span className="text-sm font-normal text-stone-500 ml-1">g</span>
-                  </p>
-                  <p className="text-xs text-stone-400 mt-1">
-                    Alert below {b.low_stock_threshold_grams}g
-                  </p>
-                </div>
-              );
-            })}
-            {brewing.length === 0 && (
-              <p className="text-sm text-stone-400 col-span-full py-8 text-center">
-                No brewing stock yet. Add a batch below.
-              </p>
-            )}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </TabsContent>
 
-        {/* ── Batches ── */}
-        <TabsContent value="batches" className="mt-4">
-          <div className="flex justify-between items-center mb-3">
+        {/* Batches */}
+        <TabsContent value="batches" className="mt-4 space-y-3">
+          <div className="flex justify-between items-center">
             <p className="text-sm text-stone-500">{batches.length} batch{batches.length !== 1 ? "es" : ""}</p>
             <Button size="sm" onClick={() => setShowAddBatch(true)}>
               <Plus className="h-3.5 w-3.5 mr-1" /> Add Batch
             </Button>
           </div>
-          <div className="bg-white rounded-xl border border-stone-200 overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-stone-50 border-b border-stone-200">
-                <tr>
-                  <th className="text-left px-4 py-2.5 font-medium text-stone-600">Bean Type</th>
-                  <th className="text-right px-4 py-2.5 font-medium text-stone-600">Total (g)</th>
-                  <th className="text-right px-4 py-2.5 font-medium text-stone-600">→ Brewing</th>
-                  <th className="text-right px-4 py-2.5 font-medium text-stone-600">→ Retail</th>
-                  <th className="text-left px-4 py-2.5 font-medium text-stone-600">Added</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-stone-100">
-                {batches.map((b: any) => (
-                  <tr key={b.id}>
-                    <td className="px-4 py-3 font-medium text-stone-900">{b.bean_type}</td>
-                    <td className="px-4 py-3 text-right">{Number(b.qty_received_grams).toLocaleString()}</td>
-                    <td className="px-4 py-3 text-right text-amber-700">
-                      {Number(b.brewing_allocated ?? 0).toLocaleString()}
-                    </td>
-                    <td className="px-4 py-3 text-right text-stone-600">
-                      {Number(b.retail_allocated ?? 0).toLocaleString()}
-                    </td>
-                    <td className="px-4 py-3 text-stone-400 text-xs">
+
+          {batches.length === 0 ? (
+            <p className="text-center text-stone-400 py-10 text-sm">No batches yet.</p>
+          ) : (
+            <div className="space-y-2">
+              {batches.map((b: any) => (
+                <div key={b.id} className="bg-white rounded-2xl border border-stone-200 p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-stone-900">{b.name || b.bean_type}</p>
+                      {b.name && <p className="text-xs text-stone-400">{b.bean_type}</p>}
+                      {b.remarks && <p className="text-xs text-stone-400 mt-1 italic">{b.remarks}</p>}
+                    </div>
+                    <p className="text-xs text-stone-400 shrink-0">
                       {new Date(b.created_at).toLocaleDateString()}
-                    </td>
-                  </tr>
-                ))}
-                {batches.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="px-4 py-8 text-center text-sm text-stone-400">
-                      No batches yet.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-4 mt-3 text-sm">
+                    <div>
+                      <p className="text-xs text-stone-400">Total</p>
+                      <p className="font-semibold text-stone-900">{Number(b.qty_received_grams).toLocaleString()}g</p>
+                    </div>
+                    <div className="text-stone-200">|</div>
+                    <div>
+                      <p className="text-xs text-amber-600">Brewing</p>
+                      <p className="font-semibold text-stone-900">{Number(b.brewing_allocated ?? 0).toLocaleString()}g</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
-        {/* ── History ── */}
-        <TabsContent value="history" className="mt-4">
-          <div className="bg-white rounded-xl border border-stone-200 overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-stone-50 border-b border-stone-200">
-                <tr>
-                  <th className="text-left px-4 py-2.5 font-medium text-stone-600">Date</th>
-                  <th className="text-left px-4 py-2.5 font-medium text-stone-600">Bean Type</th>
-                  <th className="text-left px-4 py-2.5 font-medium text-stone-600">Pool</th>
-                  <th className="text-right px-4 py-2.5 font-medium text-stone-600">Grams</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-stone-100">
-                {allocations.map((a) => (
-                  <tr key={a.id}>
-                    <td className="px-4 py-3 text-stone-500 text-xs">
-                      {new Date(a.timestamp).toLocaleDateString()}
-                    </td>
-                    <td className="px-4 py-3 font-medium text-stone-900">
-                      {a.bean_batch?.bean_type ?? "—"}
-                    </td>
-                    <td className="px-4 py-3 capitalize text-stone-600">{a.to_pool}</td>
-                    <td className="px-4 py-3 text-right">{Number(a.qty_grams).toLocaleString()}</td>
-                  </tr>
-                ))}
-                {allocations.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="px-4 py-8 text-center text-sm text-stone-400">
-                      No history yet.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+        {/* History */}
+        <TabsContent value="history" className="mt-4 space-y-2">
+          {allocations.length === 0 ? (
+            <p className="text-center text-stone-400 py-10 text-sm">No history yet.</p>
+          ) : (
+            allocations.map((a) => (
+              <div key={a.id} className="bg-white rounded-xl border border-stone-100 px-4 py-3 flex items-center justify-between text-sm gap-3">
+                <div className="min-w-0">
+                  <p className="font-medium text-stone-900 truncate">{a.bean_batch?.bean_type ?? "—"}</p>
+                  <p className="text-xs text-stone-400">{new Date(a.timestamp).toLocaleDateString()}</p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="font-semibold text-stone-900">{Number(a.qty_grams).toLocaleString()}g</p>
+                  <p className="text-xs text-stone-400 capitalize">{a.to_pool}</p>
+                </div>
+              </div>
+            ))
+          )}
         </TabsContent>
       </Tabs>
 

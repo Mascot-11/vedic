@@ -10,8 +10,10 @@ import { toast } from "sonner";
 import { User, ShopSettings } from "@/lib/types";
 import { closeOrderAsPaid, closeOrderAsCredit } from "@/app/actions/orders";
 import { createClient } from "@/lib/supabase/client";
+import { isNetworkError } from "@/lib/is-network-error";
+import { enqueue } from "@/lib/offline-queue";
 import CustomerSearch from "./customer-search";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, WifiOff } from "lucide-react";
 
 interface UnpaidOrder {
   id: string;
@@ -100,7 +102,22 @@ export default function CloseOrderDialog({ order, user, settings, onClose }: Pro
           await closeOrderAsCredit(order.id, customerId!, amountPaid, effectiveDiscount, discountReason);
         }
       } catch (e: any) {
-        toast.error(e.message);
+        if (isNetworkError(e)) {
+          // Queue the close for when connectivity returns
+          await enqueue(tab === "paid" ? "close_order_paid" : "close_order_credit", {
+            orderId: order.id,
+            discountAmount: effectiveDiscount,
+            discountReason,
+            customerId: customerId ?? null,
+            amountPaid,
+          });
+          toast("Order close queued — will sync when online", {
+            icon: <WifiOff className="h-4 w-4 text-amber-500" />,
+          });
+          onClose();
+        } else {
+          toast.error(e.message);
+        }
       }
     });
   }

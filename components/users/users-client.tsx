@@ -6,23 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Plus, PowerOff, Power } from "lucide-react";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createUser, toggleUserActive } from "@/app/actions/users";
 
 type UserWithEmail = User & { email: string };
-
-interface Props {
-  users: UserWithEmail[];
-  currentUser: User;
-}
+interface Props { users: UserWithEmail[]; currentUser: User; }
 
 function roleBadge(role: string): "default" | "secondary" | "outline" {
   if (role === "superadmin") return "default";
@@ -47,23 +37,10 @@ export default function UsersClient({ users: initial, currentUser }: Props) {
       try {
         await createUser({ name, email, password, role });
         toast.success(`${name} added as ${role}`);
-        setUsers((prev) => [
-          ...prev,
-          {
-            id: crypto.randomUUID(),
-            name,
-            email,
-            role,
-            auth_id: "",
-            active: true,
-            created_at: new Date().toISOString(),
-          },
-        ]);
+        setUsers((prev) => [...prev, { id: crypto.randomUUID(), name, email, role, auth_id: "", active: true, created_at: new Date().toISOString() }]);
         setShowAdd(false);
         setName(""); setEmail(""); setPassword(""); setRole("staff");
-      } catch (e: any) {
-        toast.error(e.message);
-      }
+      } catch (e: any) { toast.error(e.message); }
     });
   }
 
@@ -71,13 +48,9 @@ export default function UsersClient({ users: initial, currentUser }: Props) {
     start(async () => {
       try {
         await toggleUserActive(u.id, !u.active);
-        setUsers((prev) =>
-          prev.map((x) => (x.id === u.id ? { ...x, active: !u.active } : x))
-        );
+        setUsers((prev) => prev.map((x) => x.id === u.id ? { ...x, active: !u.active } : x));
         toast.success(`${u.name} ${!u.active ? "activated" : "deactivated"}`);
-      } catch (e: any) {
-        toast.error(e.message);
-      }
+      } catch (e: any) { toast.error(e.message); }
     });
   }
 
@@ -100,132 +73,67 @@ export default function UsersClient({ users: initial, currentUser }: Props) {
         </Button>
       </div>
 
-      <div className="bg-white rounded-xl border border-stone-200 overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-stone-50 border-b border-stone-200">
-            <tr>
-              <th className="text-left px-4 py-2.5 font-medium text-stone-600">Name</th>
-              <th className="text-left px-4 py-2.5 font-medium text-stone-600">Email</th>
-              <th className="text-left px-4 py-2.5 font-medium text-stone-600">Role</th>
-              <th className="text-center px-4 py-2.5 font-medium text-stone-600">Status</th>
-              <th className="w-12" />
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-stone-100">
-            {users.map((u) => (
-              <tr key={u.id} className={!u.active ? "opacity-50" : ""}>
-                <td className="px-4 py-3 font-medium text-stone-900">
-                  {u.name}
-                  {u.id === currentUser.id && (
-                    <span className="ml-2 text-xs text-stone-400">(you)</span>
-                  )}
-                </td>
-                <td className="px-4 py-3 text-stone-500">{u.email || "—"}</td>
-                <td className="px-4 py-3">
-                  <Badge variant={roleBadge(u.role)} className="capitalize text-xs">
-                    {u.role}
-                  </Badge>
-                </td>
-                <td className="px-4 py-3 text-center">
-                  <Badge
-                    variant={u.active ? "default" : "secondary"}
-                    className="text-xs"
-                  >
-                    {u.active ? "Active" : "Inactive"}
-                  </Badge>
-                </td>
-                <td className="px-3 py-3 text-right">
-                  {canToggle(u) && (
-                    <button
-                      onClick={() => handleToggle(u)}
-                      disabled={pending}
-                      title={u.active ? "Deactivate" : "Activate"}
-                      className="p-1 text-stone-400 hover:text-stone-700 transition-colors"
-                    >
-                      {u.active ? (
-                        <PowerOff className="h-4 w-4" />
-                      ) : (
-                        <Power className="h-4 w-4 text-green-600" />
-                      )}
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))}
-            {users.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-sm text-stone-400">
-                  No users yet.
-                </td>
-              </tr>
+      <div className="space-y-2">
+        {users.map((u) => (
+          <div key={u.id} className={`bg-white rounded-2xl border border-stone-200 px-4 py-3 flex items-center gap-3 ${!u.active ? "opacity-50" : ""}`}>
+            <div className="h-9 w-9 rounded-full bg-stone-100 flex items-center justify-center text-stone-600 font-bold text-sm shrink-0">
+              {u.name[0]?.toUpperCase()}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="font-semibold text-stone-900 text-sm">{u.name}</p>
+                {u.id === currentUser.id && <span className="text-xs text-stone-400">(you)</span>}
+                <Badge variant={roleBadge(u.role)} className="text-[10px] capitalize px-1.5 py-0">{u.role}</Badge>
+              </div>
+              <p className="text-xs text-stone-400 mt-0.5 truncate">{u.email || "—"}</p>
+            </div>
+            {canToggle(u) && (
+              <button
+                onClick={() => handleToggle(u)}
+                disabled={pending}
+                className="p-2 text-stone-300 hover:text-stone-600 transition-colors rounded-xl shrink-0"
+                title={u.active ? "Deactivate" : "Activate"}
+              >
+                {u.active ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4 text-green-500" />}
+              </button>
             )}
-          </tbody>
-        </table>
+          </div>
+        ))}
+        {users.length === 0 && (
+          <p className="text-center text-stone-400 py-10 text-sm">No users yet.</p>
+        )}
       </div>
 
       {showAdd && (
         <Dialog open onOpenChange={(open) => !open && setShowAdd(false)}>
-          <DialogContent className="max-w-sm">
+          <DialogContent className="max-w-sm mx-4">
             <DialogHeader>
               <DialogTitle>Add User</DialogTitle>
-              <DialogDescription>
-                Account is active immediately — no email verification required.
-              </DialogDescription>
+              <DialogDescription>Account is active immediately — no email verification.</DialogDescription>
             </DialogHeader>
             <div className="space-y-3 mt-1">
               <div className="space-y-1.5">
                 <Label>Full Name</Label>
-                <Input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Rina Shrestha"
-                />
+                <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Rina Shrestha" />
               </div>
               <div className="space-y-1.5">
                 <Label>Email</Label>
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="rina@example.com"
-                />
+                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="rina@example.com" />
               </div>
               <div className="space-y-1.5">
                 <Label>Temporary Password</Label>
-                <Input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Min. 8 characters"
-                />
+                <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Min. 8 characters" />
               </div>
               <div className="space-y-1.5">
                 <Label>Role</Label>
-                <select
-                  className="w-full rounded-md border border-stone-200 px-3 py-2 text-sm bg-white"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value as "owner" | "staff")}
-                >
-                  {roleOptions.map((r) => (
-                    <option key={r.value} value={r.value}>
-                      {r.label}
-                    </option>
-                  ))}
+                <select className="w-full rounded-xl border border-stone-200 px-3 py-2.5 text-sm bg-white" value={role} onChange={(e) => setRole(e.target.value as any)}>
+                  {roleOptions.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
                 </select>
               </div>
               <div className="flex justify-end gap-2 pt-1">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowAdd(false)}
-                  disabled={pending}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleCreate}
-                  disabled={pending || !email || !name || !password}
-                >
-                  {pending ? "Creating…" : "Create User"}
+                <Button variant="outline" onClick={() => setShowAdd(false)} disabled={pending}>Cancel</Button>
+                <Button onClick={handleCreate} disabled={pending || !email || !name || !password}>
+                  {pending ? "Creating…" : "Create"}
                 </Button>
               </div>
             </div>
