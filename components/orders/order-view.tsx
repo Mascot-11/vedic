@@ -1,15 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
-import { ArrowLeft, Trash2, Plus } from "lucide-react";
+import { ArrowLeft, Trash2, Plus, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { User, ShopSettings } from "@/lib/types";
 import { removeOrderItem } from "@/app/actions/orders";
 import AddItemSheet from "./add-item-sheet";
 import CloseOrderDialog from "./close-order-dialog";
-import { useTransition } from "react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 interface OrderViewProps {
   order: any;
@@ -22,146 +22,139 @@ export default function OrderView({ order, products, user, settings }: OrderView
   const [showAddItem, setShowAddItem] = useState(false);
   const [showClose, setShowClose] = useState(false);
   const [removing, startRemove] = useTransition();
-
   const isClosed = order.status === "closed";
 
   function handleRemove(itemId: string) {
     startRemove(async () => {
-      try {
-        await removeOrderItem(order.id, itemId);
-      } catch (e: any) {
-        toast.error(e.message);
-      }
+      try { await removeOrderItem(order.id, itemId); }
+      catch (e: any) { toast.error(e.message); }
     });
   }
 
+  const items = order.order_items ?? [];
+  const subtotal = Number(order.subtotal_amount ?? 0);
+  const discount = Number(order.discount_amount ?? 0);
+  const total = Number(order.total_amount ?? 0);
+
   return (
-    <div className="p-6 max-w-2xl mx-auto">
-      <div className="flex items-center gap-3 mb-6">
-        <Link href="/" className="text-stone-500 hover:text-stone-900">
-          <ArrowLeft className="h-5 w-5" />
+    <div className="flex flex-col h-full min-h-screen bg-stone-50">
+      {/* Header */}
+      <div className="flex items-center gap-3 px-4 py-4 bg-white border-b border-stone-200 sticky top-0 z-10">
+        <Link href="/" className="p-2 -ml-2 rounded-xl hover:bg-stone-100 transition-colors">
+          <ArrowLeft className="h-5 w-5 text-stone-600" />
         </Link>
-        <div>
-          <h1 className="text-xl font-semibold text-stone-900">
-            {order.table?.label ?? "Unknown Table"}
-          </h1>
-          <p className="text-sm text-stone-500 capitalize">
-            {isClosed ? `Closed · ${order.payment_status?.replace("_", " ")}` : "Open tab"}
+        <div className="flex-1 min-w-0">
+          <h1 className="text-lg font-bold text-stone-900">{order.table?.label ?? "Order"}</h1>
+          <p className="text-xs text-stone-500">
+            {isClosed
+              ? `Closed · ${(order.payment_status ?? "").replace("_", " ")}`
+              : "Open tab"}
           </p>
         </div>
-      </div>
-
-      {/* Items list */}
-      <div className="bg-white rounded-xl border border-stone-200 overflow-hidden mb-4">
-        {order.order_items?.length === 0 ? (
-          <p className="text-sm text-stone-400 text-center py-10">No items yet.</p>
-        ) : (
-          <table className="w-full text-sm">
-            <thead className="bg-stone-50 border-b border-stone-200">
-              <tr>
-                <th className="text-left px-4 py-2.5 font-medium text-stone-600">Item</th>
-                <th className="text-right px-4 py-2.5 font-medium text-stone-600">Qty</th>
-                <th className="text-right px-4 py-2.5 font-medium text-stone-600">Price</th>
-                <th className="text-right px-4 py-2.5 font-medium text-stone-600">Total</th>
-                {!isClosed && <th className="w-10" />}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-100">
-              {order.order_items?.map((item: any) => (
-                <tr key={item.id}>
-                  <td className="px-4 py-3 text-stone-900">{item.product_name ?? "—"}</td>
-                  <td className="px-4 py-3 text-right text-stone-600">{item.qty}</td>
-                  <td className="px-4 py-3 text-right text-stone-600">
-                    Rs. {Number(item.unit_price).toFixed(2)}
-                  </td>
-                  <td className="px-4 py-3 text-right font-medium">
-                    Rs. {Number(item.subtotal).toFixed(2)}
-                  </td>
-                  {!isClosed && (
-                    <td className="px-2 py-3 text-right">
-                      <button
-                        onClick={() => handleRemove(item.id)}
-                        disabled={removing}
-                        className="p-1 text-stone-400 hover:text-red-500 transition-colors"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {!isClosed && (
+          <Badge variant="outline" className="text-amber-700 border-amber-300 bg-amber-50 text-xs px-2.5 py-1">
+            {items.length} item{items.length !== 1 ? "s" : ""}
+          </Badge>
         )}
       </div>
 
-      {/* Totals */}
-      <div className="bg-white rounded-xl border border-stone-200 p-4 mb-4 space-y-2 text-sm">
-        <div className="flex justify-between text-stone-600">
-          <span>Subtotal</span>
-          <span>Rs. {Number(order.subtotal_amount).toFixed(2)}</span>
+      {/* Items */}
+      <div className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
+        {items.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <ShoppingBag className="h-12 w-12 text-stone-200 mb-3" />
+            <p className="text-stone-400 font-medium">No items yet</p>
+            <p className="text-stone-300 text-sm mt-0.5">Tap "Add Item" to start</p>
+          </div>
+        ) : (
+          items.map((item: any) => (
+            <div
+              key={item.id}
+              className="flex items-center gap-3 bg-white rounded-xl px-4 py-3 border border-stone-100"
+            >
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-stone-900 truncate">{item.product_name ?? "—"}</p>
+                <p className="text-xs text-stone-400 mt-0.5">
+                  Rs. {Number(item.unit_price).toFixed(0)} × {item.qty}
+                </p>
+              </div>
+              <p className="font-bold text-stone-900 text-sm tabular-nums">
+                Rs. {Number(item.subtotal).toFixed(0)}
+              </p>
+              {!isClosed && (
+                <button
+                  onClick={() => handleRemove(item.id)}
+                  disabled={removing}
+                  className="p-2 -mr-1 text-stone-300 hover:text-red-500 active:scale-95 transition-all rounded-lg"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Totals + actions */}
+      <div className="bg-white border-t border-stone-200 px-4 pt-4 pb-6 space-y-4 sticky bottom-0">
+        {/* Bill summary */}
+        <div className="space-y-1.5 text-sm">
+          <div className="flex justify-between text-stone-500">
+            <span>Subtotal</span>
+            <span>Rs. {subtotal.toFixed(2)}</span>
+          </div>
+          {discount > 0 && (
+            <div className="flex justify-between text-green-600">
+              <span>Discount {order.discount_reason ? `(${order.discount_reason})` : ""}</span>
+              <span>- Rs. {discount.toFixed(2)}</span>
+            </div>
+          )}
+          <div className="flex justify-between font-bold text-stone-900 text-base pt-1.5 border-t border-stone-100">
+            <span>Total</span>
+            <span>Rs. {total.toFixed(2)}</span>
+          </div>
+          {isClosed && (
+            <>
+              <div className="flex justify-between text-stone-500 text-xs">
+                <span>Paid</span>
+                <span>Rs. {Number(order.amount_paid).toFixed(2)}</span>
+              </div>
+              {Number(order.balance_due) > 0 && (
+                <div className="flex justify-between text-red-600 font-semibold text-sm">
+                  <span>Balance due</span>
+                  <span>Rs. {Number(order.balance_due).toFixed(2)}</span>
+                </div>
+              )}
+            </>
+          )}
         </div>
-        {order.discount_amount > 0 && (
-          <div className="flex justify-between text-green-700">
-            <span>Discount {order.discount_reason ? `(${order.discount_reason})` : ""}</span>
-            <span>- Rs. {Number(order.discount_amount).toFixed(2)}</span>
+
+        {/* Action buttons */}
+        {!isClosed && (
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              className="flex-1 h-12 text-sm font-medium rounded-xl border-stone-200"
+              onClick={() => setShowAddItem(true)}
+            >
+              <Plus className="h-4 w-4 mr-1.5" /> Add Item
+            </Button>
+            <Button
+              className="flex-1 h-12 text-sm font-semibold rounded-xl bg-stone-900 hover:bg-stone-800"
+              onClick={() => setShowClose(true)}
+              disabled={items.length === 0}
+            >
+              Close Order
+            </Button>
           </div>
         )}
-        <div className="flex justify-between font-semibold text-stone-900 pt-1 border-t border-stone-100">
-          <span>Total</span>
-          <span>Rs. {Number(order.total_amount).toFixed(2)}</span>
-        </div>
-        {isClosed && (
-          <>
-            <div className="flex justify-between text-stone-600">
-              <span>Paid</span>
-              <span>Rs. {Number(order.amount_paid).toFixed(2)}</span>
-            </div>
-            {order.balance_due > 0 && (
-              <div className="flex justify-between text-red-600 font-medium">
-                <span>Balance Due</span>
-                <span>Rs. {Number(order.balance_due).toFixed(2)}</span>
-              </div>
-            )}
-          </>
-        )}
       </div>
 
-      {!isClosed && (
-        <div className="flex gap-3">
-          <Button
-            variant="outline"
-            className="flex-1"
-            onClick={() => setShowAddItem(true)}
-          >
-            <Plus className="h-4 w-4 mr-1.5" />
-            Add Item
-          </Button>
-          <Button
-            className="flex-1 bg-stone-900 hover:bg-stone-800"
-            onClick={() => setShowClose(true)}
-            disabled={order.order_items?.length === 0}
-          >
-            Close Order
-          </Button>
-        </div>
-      )}
-
       {showAddItem && (
-        <AddItemSheet
-          orderId={order.id}
-          products={products}
-          onClose={() => setShowAddItem(false)}
-        />
+        <AddItemSheet orderId={order.id} products={products} onClose={() => setShowAddItem(false)} />
       )}
-
       {showClose && (
-        <CloseOrderDialog
-          order={order}
-          user={user}
-          settings={settings}
-          onClose={() => setShowClose(false)}
-        />
+        <CloseOrderDialog order={order} user={user} settings={settings} onClose={() => setShowClose(false)} />
       )}
     </div>
   );

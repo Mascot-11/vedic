@@ -11,6 +11,8 @@ const geist = Geist({
 export const metadata: Metadata = {
   title: "Vedic Coffee",
   description: "Coffee Shop Management System",
+  manifest: "/manifest.json",
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "Vedic Coffee" },
 };
 
 export default function RootLayout({

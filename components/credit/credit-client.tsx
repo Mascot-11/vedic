@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { User } from "@/lib/types";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, AlertCircle, CheckCircle2 } from "lucide-react";
 import PaymentDialog from "./payment-dialog";
+import { cn } from "@/lib/utils";
 
 interface UnpaidOrder {
   id: string;
@@ -28,126 +28,128 @@ interface Props {
   user: User;
 }
 
-export default function CreditClient({ customers, user }: Props) {
-  const [expanded, setExpanded] = useState<string | null>(null);
-  const [paying, setPaying] = useState<CustomerWithBalance | null>(null);
+function CustomerRow({ c, onPay }: { c: CustomerWithBalance; onPay: () => void }) {
+  const [expanded, setExpanded] = useState(false);
+  const hasDebt = c.total_balance > 0;
 
-  const withBalance = customers.filter((c) => c.total_balance > 0);
-  const withoutBalance = customers.filter((c) => c.total_balance === 0);
-
-  function CustomerRow({ c }: { c: CustomerWithBalance }) {
-    const isExpanded = expanded === c.id;
-    return (
-      <div className="border border-stone-200 rounded-xl overflow-hidden bg-white">
-        <div
-          className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-stone-50"
-          onClick={() => setExpanded(isExpanded ? null : c.id)}
-        >
-          <div>
-            <p className="font-medium text-stone-900">{c.name}</p>
-            {c.total_balance > 0 && (
-              <p className="text-sm text-red-600 font-medium">
-                Rs. {c.total_balance.toFixed(2)} outstanding
-              </p>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            {c.total_balance > 0 && (
-              <Button
-                size="sm"
-                onClick={(e) => { e.stopPropagation(); setPaying(c); }}
-              >
-                Record Payment
-              </Button>
-            )}
-            {isExpanded ? (
-              <ChevronUp className="h-4 w-4 text-stone-400" />
-            ) : (
-              <ChevronDown className="h-4 w-4 text-stone-400" />
-            )}
-          </div>
+  return (
+    <div className={cn(
+      "bg-white rounded-2xl border overflow-hidden",
+      hasDebt ? "border-red-200" : "border-stone-200"
+    )}>
+      <button
+        className="w-full flex items-center gap-3 px-4 py-4 text-left hover:bg-stone-50 transition-colors"
+        onClick={() => setExpanded(!expanded)}
+      >
+        <div className={cn(
+          "h-9 w-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0",
+          hasDebt ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
+        )}>
+          {c.name[0].toUpperCase()}
         </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-stone-900">{c.name}</p>
+          {hasDebt ? (
+            <p className="text-sm text-red-600 font-medium">
+              Rs. {c.total_balance.toFixed(2)} outstanding
+            </p>
+          ) : (
+            <p className="text-sm text-green-600">All clear</p>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          {hasDebt && (
+            <Button
+              size="sm"
+              className="h-8 px-3 text-xs rounded-lg"
+              onClick={(e) => { e.stopPropagation(); onPay(); }}
+            >
+              Record Payment
+            </Button>
+          )}
+          {expanded ? (
+            <ChevronUp className="h-4 w-4 text-stone-400" />
+          ) : (
+            <ChevronDown className="h-4 w-4 text-stone-400" />
+          )}
+        </div>
+      </button>
 
-        {isExpanded && c.unpaid_orders.length > 0 && (
-          <div className="border-t border-stone-100">
-            <table className="w-full text-sm">
-              <thead className="bg-stone-50">
-                <tr>
-                  <th className="text-left px-4 py-2 font-medium text-stone-500">Date</th>
-                  <th className="text-left px-4 py-2 font-medium text-stone-500">Table</th>
-                  <th className="text-right px-4 py-2 font-medium text-stone-500">Order Total</th>
-                  <th className="text-right px-4 py-2 font-medium text-stone-500">Balance Due</th>
-                  <th className="text-center px-4 py-2 font-medium text-stone-500">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-stone-100">
-                {c.unpaid_orders.map((o) => (
-                  <tr key={o.id}>
-                    <td className="px-4 py-2.5 text-stone-600">
-                      {new Date(o.opened_at).toLocaleDateString()}
-                    </td>
-                    <td className="px-4 py-2.5 text-stone-600">
-                      {o.table?.label ?? "—"}
-                    </td>
-                    <td className="px-4 py-2.5 text-right">
-                      Rs. {Number(o.total_amount).toFixed(2)}
-                    </td>
-                    <td className="px-4 py-2.5 text-right font-medium text-red-600">
-                      Rs. {Number(o.balance_due).toFixed(2)}
-                    </td>
-                    <td className="px-4 py-2.5 text-center">
-                      <Badge variant="secondary" className="capitalize text-xs">
-                        {o.payment_status?.replace("_", " ")}
-                      </Badge>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-    );
-  }
+      {expanded && c.unpaid_orders.length > 0 && (
+        <div className="border-t border-stone-100 divide-y divide-stone-100">
+          {c.unpaid_orders.map((o) => (
+            <div key={o.id} className="flex items-center justify-between px-4 py-3 text-sm">
+              <div>
+                <p className="font-medium text-stone-800">{o.table?.label ?? "—"}</p>
+                <p className="text-xs text-stone-400">{new Date(o.opened_at).toLocaleDateString()}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-stone-400">Total Rs. {Number(o.total_amount).toFixed(2)}</p>
+                <p className="font-semibold text-red-600">Rs. {Number(o.balance_due).toFixed(2)} due</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function CreditClient({ customers, user }: Props) {
+  const [paying, setPaying] = useState<CustomerWithBalance | null>(null);
+  const withBalance = customers.filter((c) => c.total_balance > 0);
+  const cleared = customers.filter((c) => c.total_balance === 0);
+  const totalOwed = withBalance.reduce((s, c) => s + c.total_balance, 0);
 
   return (
     <>
-      <div className="space-y-4">
+      {/* Summary banner */}
+      {withBalance.length > 0 && (
+        <div className="mb-5 rounded-2xl bg-red-50 border border-red-200 px-5 py-4 flex items-center gap-3">
+          <AlertCircle className="h-5 w-5 text-red-500 shrink-0" />
+          <div>
+            <p className="font-semibold text-red-800">
+              Rs. {totalOwed.toFixed(2)} total outstanding
+            </p>
+            <p className="text-sm text-red-600">{withBalance.length} customer{withBalance.length !== 1 ? "s" : ""} with unpaid dues</p>
+          </div>
+        </div>
+      )}
+
+      <div className="space-y-6">
         {withBalance.length > 0 && (
-          <section>
-            <h2 className="text-sm font-semibold text-stone-500 uppercase tracking-wide mb-2">
-              Outstanding Dues ({withBalance.length})
-            </h2>
-            <div className="space-y-2">
-              {withBalance.map((c) => <CustomerRow key={c.id} c={c} />)}
-            </div>
+          <section className="space-y-2">
+            <p className="text-xs font-bold uppercase tracking-widest text-stone-400">
+              Outstanding Dues
+            </p>
+            {withBalance.map((c) => (
+              <CustomerRow key={c.id} c={c} onPay={() => setPaying(c)} />
+            ))}
           </section>
         )}
 
-        {withoutBalance.length > 0 && (
-          <section>
-            <h2 className="text-sm font-semibold text-stone-500 uppercase tracking-wide mb-2 mt-6">
-              Cleared Customers ({withoutBalance.length})
-            </h2>
-            <div className="space-y-2">
-              {withoutBalance.map((c) => <CustomerRow key={c.id} c={c} />)}
-            </div>
+        {cleared.length > 0 && (
+          <section className="space-y-2">
+            <p className="text-xs font-bold uppercase tracking-widest text-stone-400">
+              Cleared
+            </p>
+            {cleared.map((c) => (
+              <CustomerRow key={c.id} c={c} onPay={() => setPaying(c)} />
+            ))}
           </section>
         )}
 
         {customers.length === 0 && (
-          <p className="text-sm text-stone-400 text-center py-12">
-            No credit customers yet. Close an order as Credit to add one.
-          </p>
+          <div className="text-center py-20">
+            <CheckCircle2 className="h-12 w-12 text-stone-200 mx-auto mb-3" />
+            <p className="text-stone-400 font-medium">No credit customers yet</p>
+            <p className="text-stone-300 text-sm mt-1">Close an order as Credit to add one</p>
+          </div>
         )}
       </div>
 
       {paying && (
-        <PaymentDialog
-          customer={paying}
-          user={user}
-          onClose={() => setPaying(null)}
-        />
+        <PaymentDialog customer={paying} user={user} onClose={() => setPaying(null)} />
       )}
     </>
   );

@@ -3,16 +3,12 @@ import { getCurrentUser } from "@/lib/auth";
 import CreditClient from "@/components/credit/credit-client";
 
 export default async function CreditPage() {
-  const user = await getCurrentUser();
-  const supabase = createAdminClient();
+  const [user, db] = [await getCurrentUser(), createAdminClient()];
 
-  // Customers with outstanding balance
-  const { data: customers } = await supabase
+  const { data: customers } = await db
     .from("customers")
-    .select(`
-      id, name, created_at,
-      orders(id, total_amount, balance_due, payment_status, opened_at, table:tables(label))
-    `)
+    .select(`id, name, created_at,
+      orders(id, total_amount, balance_due, payment_status, opened_at, table:tables(label))`)
     .order("name");
 
   const customersWithBalance = (customers ?? []).map((c) => ({
@@ -29,8 +25,11 @@ export default async function CreditPage() {
   }));
 
   return (
-    <div className="p-6">
-      <h1 className="text-xl font-semibold text-stone-900 mb-6">Credit & Dues</h1>
+    <div className="p-5">
+      <div className="mb-5">
+        <h1 className="text-xl font-bold text-stone-900">Credit & Dues</h1>
+        <p className="text-sm text-stone-400 mt-0.5">Track outstanding balances</p>
+      </div>
       <CreditClient customers={customersWithBalance} user={user!} />
     </div>
   );

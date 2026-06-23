@@ -9,8 +9,12 @@ export default async function UsersPage() {
 
   const db = createAdminClient();
 
+  // Owners can only see staff — superadmin sees everyone
+  const usersQuery = db.from("users").select("*").order("name");
+  if (user.role === "owner") usersQuery.neq("role", "superadmin");
+
   const [{ data: users }, { data: authList }] = await Promise.all([
-    db.from("users").select("*").order("name"),
+    usersQuery,
     db.auth.admin.listUsers(),
   ]);
 
