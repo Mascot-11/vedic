@@ -35,6 +35,7 @@ export async function upsertSimpleProduct(data: {
   id?: string;
   name: string;
   category: string;
+  usage_type: "sale" | "cafe_use";
   cost_price: number;
   selling_price: number;
   low_stock_threshold: number;

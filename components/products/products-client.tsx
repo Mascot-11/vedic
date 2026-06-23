@@ -9,6 +9,60 @@ import { DrinkProduct, RetailStock, SimpleProduct, User } from "@/lib/types";
 import DrinkProductDialog from "./drink-product-dialog";
 import SimpleProductDialog from "./simple-product-dialog";
 
+function SimpleProductTable({
+  items,
+  onEdit,
+  cafeUse = false,
+}: {
+  items: SimpleProduct[];
+  onEdit: (p: SimpleProduct) => void;
+  cafeUse?: boolean;
+}) {
+  return (
+    <div className="bg-white rounded-xl border border-stone-200 overflow-hidden">
+      <table className="w-full text-sm">
+        <thead className="bg-stone-50 border-b border-stone-200">
+          <tr>
+            <th className="text-left px-4 py-2.5 font-medium text-stone-600">Name</th>
+            <th className="text-left px-4 py-2.5 font-medium text-stone-600">Category</th>
+            <th className="text-right px-4 py-2.5 font-medium text-stone-600">Stock</th>
+            {!cafeUse && <th className="text-right px-4 py-2.5 font-medium text-stone-600">Sell Price</th>}
+            <th className="w-10" />
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-stone-100">
+          {items.map((s) => (
+            <tr key={s.id}>
+              <td className="px-4 py-3 font-medium text-stone-900">{s.name}</td>
+              <td className="px-4 py-3 text-stone-600">{s.category}</td>
+              <td className="px-4 py-3 text-right">
+                <span className={s.qty_available <= s.low_stock_threshold ? "text-red-600 font-medium" : "text-stone-600"}>
+                  {s.qty_available}
+                </span>
+              </td>
+              {!cafeUse && (
+                <td className="px-4 py-3 text-right">Rs. {Number(s.selling_price).toFixed(2)}</td>
+              )}
+              <td className="px-2 py-3">
+                <button onClick={() => onEdit(s)} className="p-1 text-stone-400 hover:text-stone-700">
+                  <Pencil className="h-4 w-4" />
+                </button>
+              </td>
+            </tr>
+          ))}
+          {items.length === 0 && (
+            <tr>
+              <td colSpan={cafeUse ? 4 : 5} className="px-4 py-6 text-center text-sm text-stone-400">
+                None yet.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 interface ProductsClientProps {
   drinks: DrinkProduct[];
   retailStocks: RetailStock[];
@@ -68,8 +122,12 @@ export default function ProductsClient({
                   <tr key={d.id}>
                     <td className="px-4 py-3 font-medium text-stone-900">{d.name}</td>
                     <td className="px-4 py-3 text-stone-600">{d.category}</td>
-                    <td className="px-4 py-3 text-stone-600">{d.bean_type_used}</td>
-                    <td className="px-4 py-3 text-right text-stone-600">{d.grams_per_serving}g</td>
+                    <td className="px-4 py-3 text-stone-600">
+                      {d.bean_type_used ?? <span className="text-stone-300 text-xs">—</span>}
+                    </td>
+                    <td className="px-4 py-3 text-right text-stone-600">
+                      {d.grams_per_serving != null ? `${d.grams_per_serving}g` : <span className="text-stone-300 text-xs">—</span>}
+                    </td>
                     <td className="px-4 py-3 text-right">Rs. {Number(d.price).toFixed(2)}</td>
                     <td className="px-4 py-3 text-center">
                       <Badge variant={d.active ? "default" : "secondary"}>
@@ -130,61 +188,41 @@ export default function ProductsClient({
           </div>
         </TabsContent>
 
-        <TabsContent value="simple" className="mt-4">
-          <div className="flex justify-between items-center mb-3">
-            <p className="text-sm text-stone-500">{simpleProducts.length} items</p>
+        <TabsContent value="simple" className="mt-4 space-y-6">
+          <div className="flex justify-end">
             <Button size="sm" onClick={() => setEditSimple("new")}>
               <Plus className="h-3.5 w-3.5 mr-1" /> Add Item
             </Button>
           </div>
-          <div className="bg-white rounded-xl border border-stone-200 overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-stone-50 border-b border-stone-200">
-                <tr>
-                  <th className="text-left px-4 py-2.5 font-medium text-stone-600">Name</th>
-                  <th className="text-left px-4 py-2.5 font-medium text-stone-600">Category</th>
-                  <th className="text-right px-4 py-2.5 font-medium text-stone-600">Stock</th>
-                  <th className="text-right px-4 py-2.5 font-medium text-stone-600">Sell Price</th>
-                  <th className="w-10" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-stone-100">
-                {simpleProducts.map((s) => (
-                  <tr key={s.id}>
-                    <td className="px-4 py-3 font-medium text-stone-900">{s.name}</td>
-                    <td className="px-4 py-3 text-stone-600">{s.category}</td>
-                    <td className="px-4 py-3 text-right">
-                      <span
-                        className={
-                          s.qty_available <= s.low_stock_threshold
-                            ? "text-red-600 font-medium"
-                            : "text-stone-600"
-                        }
-                      >
-                        {s.qty_available}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right">Rs. {Number(s.selling_price).toFixed(2)}</td>
-                    <td className="px-2 py-3">
-                      <button
-                        onClick={() => setEditSimple(s)}
-                        className="p-1 text-stone-400 hover:text-stone-700"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-                {simpleProducts.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="px-4 py-8 text-center text-sm text-stone-400">
-                      No items yet.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+
+          {/* For-sale items */}
+          {(() => {
+            const saleItems = simpleProducts.filter((s) => s.usage_type !== "cafe_use");
+            return (
+              <section>
+                <h2 className="text-xs font-semibold uppercase tracking-wide text-stone-400 mb-2">
+                  For Sale ({saleItems.length})
+                </h2>
+                <SimpleProductTable items={saleItems} onEdit={setEditSimple} />
+              </section>
+            );
+          })()}
+
+          {/* Cafe-use items */}
+          {(() => {
+            const cafeItems = simpleProducts.filter((s) => s.usage_type === "cafe_use");
+            return (
+              <section>
+                <h2 className="text-xs font-semibold uppercase tracking-wide text-stone-400 mb-2">
+                  Cafe Use Only — Internal Stock ({cafeItems.length})
+                </h2>
+                <p className="text-xs text-stone-400 mb-2">
+                  Tracked internally (e.g. cigarettes, syrups). Not shown on orders.
+                </p>
+                <SimpleProductTable items={cafeItems} onEdit={setEditSimple} cafeUse />
+              </section>
+            );
+          })()}
         </TabsContent>
       </Tabs>
 
