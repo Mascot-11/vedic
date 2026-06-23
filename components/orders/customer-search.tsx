@@ -3,21 +3,16 @@
 import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 
-interface CustomerSearchProps {
+interface Props {
   selectedId: string | null;
-  onSelect: (id: string) => void;
+  onSelect: (id: string, name: string) => void;
 }
 
-interface Customer {
-  id: string;
-  name: string;
-  total_balance?: number;
-}
+interface Customer { id: string; name: string; }
 
-export default function CustomerSearch({ selectedId, onSelect }: CustomerSearchProps) {
+export default function CustomerSearch({ selectedId, onSelect }: Props) {
   const [search, setSearch] = useState("");
   const [results, setResults] = useState<Customer[]>([]);
   const [selected, setSelected] = useState<Customer | null>(null);
@@ -27,36 +22,38 @@ export default function CustomerSearch({ selectedId, onSelect }: CustomerSearchP
 
   useEffect(() => {
     if (debounce.current) clearTimeout(debounce.current);
-    if (!search.trim()) {
-      setResults([]);
-      return;
-    }
+    if (!search.trim()) { setResults([]); return; }
     debounce.current = setTimeout(async () => {
-      const supabase = createClient();
-      const { data } = await supabase
+      const db = createClient();
+      const { data } = await db
         .from("customers")
         .select("id, name")
         .ilike("name", `%${search}%`)
         .limit(8);
       setResults(data ?? []);
-    }, 250);
+    }, 200);
   }, [search]);
 
   async function handleCreate() {
     if (!search.trim()) return;
     setCreating(true);
-    const supabase = createClient();
-    const { data, error } = await supabase
+    const db = createClient();
+    const { data, error } = await db
       .from("customers")
       .insert({ name: search.trim() })
       .select()
       .single();
     setCreating(false);
     if (error) return;
-    setSelected(data);
-    onSelect(data.id);
+    pick(data);
+  }
+
+  function pick(c: Customer) {
+    setSelected(c);
+    onSelect(c.id, c.name);
     setOpen(false);
     setSearch("");
+    setResults([]);
   }
 
   if (selected) {
@@ -64,7 +61,7 @@ export default function CustomerSearch({ selectedId, onSelect }: CustomerSearchP
       <div className="flex items-center justify-between rounded-md border border-stone-200 px-3 py-2 text-sm">
         <span className="font-medium">{selected.name}</span>
         <button
-          onClick={() => { setSelected(null); onSelect(""); }}
+          onClick={() => { setSelected(null); onSelect("", ""); }}
           className="text-xs text-stone-400 hover:text-stone-700"
         >
           Change
@@ -80,24 +77,20 @@ export default function CustomerSearch({ selectedId, onSelect }: CustomerSearchP
         value={search}
         onChange={(e) => { setSearch(e.target.value); setOpen(true); }}
         onFocus={() => setOpen(true)}
+        onBlur={() => setTimeout(() => setOpen(false), 150)}
       />
-      {open && (search.trim() || results.length > 0) && (
+      {open && search.trim() && (
         <div className="absolute z-50 mt-1 w-full bg-white border border-stone-200 rounded-md shadow-lg overflow-hidden">
           {results.map((c) => (
             <button
               key={c.id}
-              className="w-full text-left px-3 py-2 text-sm hover:bg-stone-50 flex justify-between"
-              onMouseDown={() => {
-                setSelected(c);
-                onSelect(c.id);
-                setOpen(false);
-                setSearch("");
-              }}
+              className="w-full text-left px-3 py-2 text-sm hover:bg-stone-50"
+              onMouseDown={() => pick(c)}
             >
-              <span>{c.name}</span>
+              {c.name}
             </button>
           ))}
-          {search.trim() && !results.find((r) => r.name.toLowerCase() === search.toLowerCase()) && (
+          {!results.find((r) => r.name.toLowerCase() === search.toLowerCase()) && (
             <button
               className="w-full text-left px-3 py-2 text-sm text-stone-500 hover:bg-stone-50 flex items-center gap-1.5 border-t border-stone-100"
               onMouseDown={handleCreate}

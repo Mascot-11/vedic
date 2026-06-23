@@ -1,18 +1,14 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { User } from "@/lib/types";
 
-export async function getCurrentUser(): Promise<User | null> {
-  // Use the session-aware anon client just to read the authenticated user id
+// React cache() deduplicates calls within the same server request
+export const getCurrentUser = cache(async (): Promise<User | null> => {
   const supabase = await createClient();
-
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser();
-
+  const { data: { user: authUser } } = await supabase.auth.getUser();
   if (!authUser) return null;
 
-  // Use admin client to fetch the user profile (bypasses RLS)
   const db = createAdminClient();
   const { data } = await db
     .from("users")
@@ -21,4 +17,4 @@ export async function getCurrentUser(): Promise<User | null> {
     .single();
 
   return data as User | null;
-}
+});

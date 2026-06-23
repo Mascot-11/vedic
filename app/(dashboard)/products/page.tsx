@@ -1,3 +1,5 @@
+export const revalidate = 60; // re-fetch products at most once per minute
+
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";

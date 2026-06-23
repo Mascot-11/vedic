@@ -1,3 +1,5 @@
+export const revalidate = 120; // reports refresh every 2 minutes
+
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
