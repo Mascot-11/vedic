@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import { Table, User } from "@/lib/types";
 import { openOrder } from "@/app/actions/orders";
 

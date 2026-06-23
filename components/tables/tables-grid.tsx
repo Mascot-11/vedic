@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
+import { useState, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Clock, UtensilsCrossed, ArrowRight } from "lucide-react";
+import { Plus, Clock, UtensilsCrossed, ArrowRight, Loader2 } from "lucide-react";
 import { Table, Order, User } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,10 +36,41 @@ export default function TablesGrid({ tables, openOrders, user }: TablesGridProps
   const router = useRouter();
   const [newOrderTable, setNewOrderTable] = useState<Table | null>(null);
   const [drilldown, setDrilldown] = useState<{ table: Table; order: OpenOrder } | null>(null);
+  const [navigating, startNavigate] = useTransition();
+
+  // Track which occupied table is navigating so card shows its own spinner
+  const [navTableId, setNavTableId] = useState<string | null>(null);
+
+  // Double-click detection per table
+  const clickTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   const orderByTable = Object.fromEntries(openOrders.map((o) => [o.table_id, o]));
   const occupied = tables.filter((t) => orderByTable[t.id]);
   const free = tables.filter((t) => !orderByTable[t.id]);
+
+  function handleOccupiedClick(table: Table, order: OpenOrder) {
+    const existing = clickTimers.current[table.id];
+    if (existing) {
+      // Second click within 300ms → double-click → navigate directly
+      clearTimeout(existing);
+      delete clickTimers.current[table.id];
+      navigateTo(order);
+    } else {
+      // First click → open drilldown after short delay (cancelled on double-click)
+      clickTimers.current[table.id] = setTimeout(() => {
+        delete clickTimers.current[table.id];
+        setDrilldown({ table, order });
+      }, 300);
+    }
+  }
+
+  function navigateTo(order: OpenOrder) {
+    setNavTableId(order.table_id);
+    setDrilldown(null);
+    startNavigate(() => {
+      router.push(`/orders/${order.id}`);
+    });
+  }
 
   if (tables.length === 0) {
     return (
@@ -75,11 +105,13 @@ export default function TablesGrid({ tables, openOrders, user }: TablesGridProps
                 const order = orderByTable[table.id];
                 const total = Number(order.subtotal_amount ?? 0);
                 const count = order.order_items.length;
+                const isLoading = navigating && navTableId === table.id;
                 return (
                   <button
                     key={table.id}
-                    onClick={() => setDrilldown({ table, order })}
-                    className="group relative rounded-2xl p-4 flex flex-col gap-2 active:scale-[0.97] transition-transform select-none overflow-hidden text-left w-full"
+                    onClick={() => handleOccupiedClick(table, order)}
+                    disabled={navigating}
+                    className="group relative rounded-2xl p-4 flex flex-col gap-2 active:scale-[0.97] transition-transform select-none overflow-hidden text-left w-full disabled:opacity-70"
                     style={{
                       background: "linear-gradient(135deg, oklch(0.96 0.05 75), oklch(0.92 0.07 70))",
                       border: "1px solid oklch(0.86 0.08 70)",
@@ -91,11 +123,15 @@ export default function TablesGrid({ tables, openOrders, user }: TablesGridProps
 
                     <div className="flex items-start justify-between relative">
                       <span className="text-sm font-bold text-stone-800">{table.label}</span>
-                      <span className="flex items-center gap-1 text-[10px] font-semibold"
-                        style={{ color: "oklch(0.52 0.1 58)" }}>
-                        <Clock className="h-3 w-3" />
-                        {timeAgo(order.opened_at)}
-                      </span>
+                      {isLoading ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-600" />
+                      ) : (
+                        <span className="flex items-center gap-1 text-[10px] font-semibold"
+                          style={{ color: "oklch(0.52 0.1 58)" }}>
+                          <Clock className="h-3 w-3" />
+                          {timeAgo(order.opened_at)}
+                        </span>
+                      )}
                     </div>
 
                     <div className="relative">
@@ -125,7 +161,8 @@ export default function TablesGrid({ tables, openOrders, user }: TablesGridProps
                 <button
                   key={table.id}
                   onClick={() => setNewOrderTable(table)}
-                  className="group rounded-2xl p-4 flex flex-col gap-3 text-left active:scale-[0.97] transition-all select-none"
+                  disabled={navigating}
+                  className="group rounded-2xl p-4 flex flex-col gap-3 text-left active:scale-[0.97] transition-all select-none disabled:opacity-50"
                   style={{
                     background: "oklch(1 0 0)",
                     border: "1.5px dashed oklch(0.85 0.008 75)",
@@ -197,9 +234,14 @@ export default function TablesGrid({ tables, openOrders, user }: TablesGridProps
           <SheetFooter className="pt-3">
             <Button
               className="w-full"
-              onClick={() => { if (dd) router.push(`/orders/${dd.order.id}`); }}
+              disabled={navigating}
+              onClick={() => dd && navigateTo(dd.order)}
             >
-              Open Order <ArrowRight className="h-4 w-4 ml-1.5" />
+              {navigating ? (
+                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Opening…</>
+              ) : (
+                <>Open Order <ArrowRight className="h-4 w-4 ml-1.5" /></>
+              )}
             </Button>
           </SheetFooter>
         </SheetContent>
