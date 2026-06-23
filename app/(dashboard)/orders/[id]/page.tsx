@@ -19,8 +19,7 @@ export default async function OrderPage({ params }: Props) {
         *,
         table:tables(id, label),
         order_items(
-          id, product_id, product_type, qty, unit_price, subtotal, added_at,
-          added_by_user:users!order_items_added_by_fkey(name)
+          id, product_id, product_type, product_name, qty, unit_price, subtotal, added_at
         )
       `)
       .eq("id", id)

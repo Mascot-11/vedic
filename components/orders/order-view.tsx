@@ -69,7 +69,7 @@ export default function OrderView({ order, products, user, settings }: OrderView
             <tbody className="divide-y divide-stone-100">
               {order.order_items?.map((item: any) => (
                 <tr key={item.id}>
-                  <td className="px-4 py-3 text-stone-900">{item.product_name ?? item.product_id}</td>
+                  <td className="px-4 py-3 text-stone-900">{item.product_name ?? "—"}</td>
                   <td className="px-4 py-3 text-right text-stone-600">{item.qty}</td>
                   <td className="px-4 py-3 text-right text-stone-600">
                     Rs. {Number(item.unit_price).toFixed(2)}
