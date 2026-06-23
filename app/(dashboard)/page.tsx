@@ -1,9 +1,9 @@
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser } from "@/lib/auth";
 import TablesGrid from "@/components/tables/tables-grid";
 
 export default async function TablesPage() {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const user = await getCurrentUser();
 
   const [{ data: tables }, { data: openOrders }] = await Promise.all([

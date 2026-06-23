@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser } from "@/lib/auth";
 import OrderView from "@/components/orders/order-view";
 
@@ -9,7 +9,7 @@ interface Props {
 
 export default async function OrderPage({ params }: Props) {
   const { id } = await params;
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const user = await getCurrentUser();
 
   const [{ data: order }, { data: products }, { data: settings }] = await Promise.all([

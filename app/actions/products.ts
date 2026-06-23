@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser } from "@/lib/auth";
 
 async function requireOwner() {
@@ -20,11 +20,12 @@ export async function upsertDrinkProduct(data: {
   active: boolean;
 }) {
   await requireOwner();
-  const supabase = await createClient();
+  const db = createAdminClient();
 
-  const { error } = data.id
-    ? await supabase.from("drink_products").update(data).eq("id", data.id)
-    : await supabase.from("drink_products").insert(data);
+  const { id, ...rest } = data;
+  const { error } = id
+    ? await db.from("drink_products").update(rest).eq("id", id)
+    : await db.from("drink_products").insert(rest);
 
   if (error) throw new Error(error.message);
   revalidatePath("/products");
@@ -40,11 +41,14 @@ export async function upsertSimpleProduct(data: {
   qty_available?: number;
 }) {
   await requireOwner();
-  const supabase = await createClient();
+  const db = createAdminClient();
 
-  const { error } = data.id
-    ? await supabase.from("simple_products").update(data).eq("id", data.id)
-    : await supabase.from("simple_products").insert({ ...data, qty_available: data.qty_available ?? 0 });
+  const { id, ...rest } = data;
+  const { error } = id
+    ? await db.from("simple_products").update(rest).eq("id", id)
+    : await db
+        .from("simple_products")
+        .insert({ ...rest, qty_available: rest.qty_available ?? 0 });
 
   if (error) throw new Error(error.message);
   revalidatePath("/products");
@@ -58,11 +62,12 @@ export async function upsertRetailStock(data: {
   selling_price: number;
 }) {
   await requireOwner();
-  const supabase = await createClient();
+  const db = createAdminClient();
 
-  const { error } = data.id
-    ? await supabase.from("retail_stock").update(data).eq("id", data.id)
-    : await supabase.from("retail_stock").insert(data);
+  const { id, ...rest } = data;
+  const { error } = id
+    ? await db.from("retail_stock").update(rest).eq("id", id)
+    : await db.from("retail_stock").insert(rest);
 
   if (error) throw new Error(error.message);
   revalidatePath("/products");
@@ -74,7 +79,7 @@ export async function toggleProductActive(
   active: boolean
 ) {
   await requireOwner();
-  const supabase = await createClient();
-  await supabase.from(table).update({ active }).eq("id", id);
+  const db = createAdminClient();
+  await db.from(table).update({ active }).eq("id", id);
   revalidatePath("/products");
 }

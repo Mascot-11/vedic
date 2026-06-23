@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser } from "@/lib/auth";
 
 export interface PaymentAllocationInput {
@@ -19,8 +19,8 @@ export async function recordPayment(data: {
   const user = await getCurrentUser();
   if (!user) throw new Error("Unauthorized");
 
-  const supabase = await createClient();
-  const { error } = await supabase.rpc("record_customer_payment", {
+  const db = createAdminClient();
+  const { error } = await db.rpc("record_customer_payment", {
     p_customer_id: data.customer_id,
     p_amount: data.amount,
     p_payment_method: data.payment_method,

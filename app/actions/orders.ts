@@ -2,16 +2,15 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser } from "@/lib/auth";
 
 export async function openOrder(tableId: string) {
-  const supabase = await createClient();
+  const db = createAdminClient();
   const user = await getCurrentUser();
   if (!user) throw new Error("Unauthorized");
 
-  // Check no open order exists for this table
-  const { data: existing } = await supabase
+  const { data: existing } = await db
     .from("orders")
     .select("id")
     .eq("table_id", tableId)
@@ -22,7 +21,7 @@ export async function openOrder(tableId: string) {
     redirect(`/orders/${existing.id}`);
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from("orders")
     .insert({
       table_id: tableId,
@@ -49,12 +48,11 @@ export async function addItemToOrder(
   productType: "drink" | "retail_bean" | "simple",
   qty: number
 ) {
-  const supabase = await createClient();
+  const db = createAdminClient();
   const user = await getCurrentUser();
   if (!user) throw new Error("Unauthorized");
 
-  // Use RPC for atomic stock deduction + item insert
-  const { error } = await supabase.rpc("add_order_item", {
+  const { error } = await db.rpc("add_order_item", {
     p_order_id: orderId,
     p_product_id: productId,
     p_product_type: productType,
@@ -63,22 +61,20 @@ export async function addItemToOrder(
   });
 
   if (error) throw new Error(error.message);
-
   revalidatePath(`/orders/${orderId}`);
 }
 
 export async function removeOrderItem(orderId: string, itemId: string) {
-  const supabase = await createClient();
+  const db = createAdminClient();
   const user = await getCurrentUser();
   if (!user) throw new Error("Unauthorized");
 
-  const { error } = await supabase.rpc("remove_order_item", {
+  const { error } = await db.rpc("remove_order_item", {
     p_item_id: itemId,
     p_actor_id: user.id,
   });
 
   if (error) throw new Error(error.message);
-
   revalidatePath(`/orders/${orderId}`);
 }
 
@@ -87,11 +83,11 @@ export async function closeOrderAsPaid(
   discountAmount: number,
   discountReason: string
 ) {
-  const supabase = await createClient();
+  const db = createAdminClient();
   const user = await getCurrentUser();
   if (!user) throw new Error("Unauthorized");
 
-  const { error } = await supabase.rpc("close_order_paid", {
+  const { error } = await db.rpc("close_order_paid", {
     p_order_id: orderId,
     p_discount_amount: discountAmount,
     p_discount_reason: discountReason || null,
@@ -112,11 +108,11 @@ export async function closeOrderAsCredit(
   discountAmount: number,
   discountReason: string
 ) {
-  const supabase = await createClient();
+  const db = createAdminClient();
   const user = await getCurrentUser();
   if (!user) throw new Error("Unauthorized");
 
-  const { error } = await supabase.rpc("close_order_credit", {
+  const { error } = await db.rpc("close_order_credit", {
     p_order_id: orderId,
     p_customer_id: customerId,
     p_amount_paid: amountPaid,

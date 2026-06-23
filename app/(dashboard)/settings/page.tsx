@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import SettingsClient from "@/components/settings/settings-client";
@@ -7,7 +7,7 @@ export default async function SettingsPage() {
   const user = await getCurrentUser();
   if (!user || user.role !== "superadmin") redirect("/");
 
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const { data: settings } = await supabase.from("shop_settings").select("*").single();
 
   return (

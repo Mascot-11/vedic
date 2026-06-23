@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser } from "@/lib/auth";
 
 export async function addBeanBatch(data: {
@@ -14,8 +14,8 @@ export async function addBeanBatch(data: {
   const user = await getCurrentUser();
   if (!user) throw new Error("Unauthorized");
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("bean_batches").insert({
+  const db = createAdminClient();
+  const { error } = await db.from("bean_batches").insert({
     ...data,
     added_by: user.id,
   });
@@ -32,8 +32,8 @@ export async function allocateBatch(data: {
   const user = await getCurrentUser();
   if (!user || user.role === "staff") throw new Error("Unauthorized");
 
-  const supabase = await createClient();
-  const { error } = await supabase.rpc("allocate_bean_batch", {
+  const db = createAdminClient();
+  const { error } = await db.rpc("allocate_bean_batch", {
     p_batch_id: data.from_batch_id,
     p_pool: data.to_pool,
     p_qty_grams: data.qty_grams,
@@ -53,8 +53,8 @@ export async function manualStockAdjustment(data: {
   const user = await getCurrentUser();
   if (!user || user.role === "staff") throw new Error("Unauthorized");
 
-  const supabase = await createClient();
-  const { error } = await supabase.rpc("manual_stock_adjustment", {
+  const db = createAdminClient();
+  const { error } = await db.rpc("manual_stock_adjustment", {
     p_bean_type: data.bean_type,
     p_pool: data.pool,
     p_change_qty: data.change_qty,

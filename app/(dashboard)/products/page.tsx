@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import ProductsClient from "@/components/products/products-client";
@@ -7,7 +7,7 @@ export default async function ProductsPage() {
   const user = await getCurrentUser();
   if (!user || user.role === "staff") redirect("/");
 
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   const [{ data: drinks }, { data: retailStocks }, { data: simpleProducts }] = await Promise.all([
     supabase.from("drink_products").select("*").order("name"),

@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import ReportsDashboard from "@/components/reports/reports-dashboard";
@@ -7,7 +7,7 @@ export default async function ReportsPage() {
   const user = await getCurrentUser();
   if (!user || user.role === "staff") redirect("/");
 
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();

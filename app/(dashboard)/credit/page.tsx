@@ -1,10 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser } from "@/lib/auth";
 import CreditClient from "@/components/credit/credit-client";
 
 export default async function CreditPage() {
   const user = await getCurrentUser();
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   // Customers with outstanding balance
   const { data: customers } = await supabase

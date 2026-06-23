@@ -1,10 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser } from "@/lib/auth";
 import InventoryClient from "@/components/inventory/inventory-client";
 
 export default async function InventoryPage() {
   const user = await getCurrentUser();
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   const [{ data: brewing }, { data: batches }, { data: allocations }] = await Promise.all([
     supabase.from("brewing_stock").select("*").order("bean_type"),

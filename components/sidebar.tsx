@@ -5,13 +5,13 @@ import { usePathname } from "next/navigation";
 import {
   Coffee,
   LayoutGrid,
-  Package,
   Users,
   BarChart3,
   Settings,
   LogOut,
   CreditCard,
   Bean,
+  UserCircle,
 } from "lucide-react";
 import { logout } from "@/app/actions/auth";
 import { User, Role } from "@/lib/types";
@@ -66,6 +66,12 @@ const navItems: NavItem[] = [
     label: "Settings",
     icon: Settings,
     roles: ["superadmin"],
+  },
+  {
+    href: "/account",
+    label: "My Account",
+    icon: UserCircle,
+    roles: ["superadmin", "owner", "staff"],
   },
 ];
 

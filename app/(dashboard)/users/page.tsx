@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import UsersClient from "@/components/users/users-client";
@@ -7,7 +7,7 @@ export default async function UsersPage() {
   const user = await getCurrentUser();
   if (!user || user.role === "staff") redirect("/");
 
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const { data: users } = await supabase
     .from("users")
     .select("*")
