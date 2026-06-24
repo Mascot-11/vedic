@@ -68,6 +68,21 @@ export async function toggleUserActive(userId: string, active: boolean) {
   revalidatePath("/users");
 }
 
+export async function deleteUser(userId: string) {
+  const currentUser = await getCurrentUser();
+  if (!currentUser || currentUser.role !== "superadmin") throw new Error("Unauthorized");
+  if (currentUser.id === userId) throw new Error("Cannot delete your own account");
+
+  const db = createAdminClient();
+  const { data: target } = await db.from("users").select("role, auth_id").eq("id", userId).single();
+  if (!target) throw new Error("User not found");
+  if (target.role === "superadmin") throw new Error("Cannot delete another superadmin");
+
+  await db.from("users").delete().eq("id", userId);
+  if (target.auth_id) await db.auth.admin.deleteUser(target.auth_id);
+  revalidatePath("/users");
+}
+
 export async function changePassword(newPassword: string) {
   const supabase = await createClient();
   const { error } = await supabase.auth.updateUser({ password: newPassword });

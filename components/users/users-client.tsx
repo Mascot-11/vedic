@@ -4,12 +4,12 @@ import { useState, useTransition } from "react";
 import { User } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, PowerOff, Power } from "lucide-react";
+import { Plus, PowerOff, Power, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createUser, toggleUserActive } from "@/app/actions/users";
+import { createUser, toggleUserActive, deleteUser } from "@/app/actions/users";
 
 type UserWithEmail = User & { email: string };
 interface Props { users: UserWithEmail[]; currentUser: User; }
@@ -28,6 +28,7 @@ export default function UsersClient({ users: initial, currentUser }: Props) {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<"owner" | "staff">("staff");
   const [pending, start] = useTransition();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const isSuperadmin = currentUser.role === "superadmin";
   const isOwner = currentUser.role === "owner";
@@ -52,6 +53,23 @@ export default function UsersClient({ users: initial, currentUser }: Props) {
         toast.success(`${u.name} ${!u.active ? "activated" : "deactivated"}`);
       } catch (e: any) { toast.error(e.message); }
     });
+  }
+
+  function handleDelete(u: UserWithEmail) {
+    if (!confirm(`Permanently delete ${u.name}? This cannot be undone.`)) return;
+    setDeletingId(u.id);
+    start(async () => {
+      try {
+        await deleteUser(u.id);
+        setUsers((prev) => prev.filter((x) => x.id !== u.id));
+        toast.success(`${u.name} deleted`);
+      } catch (e: any) { toast.error(e.message); }
+      finally { setDeletingId(null); }
+    });
+  }
+
+  function canDelete(u: UserWithEmail) {
+    return isSuperadmin && u.id !== currentUser.id && u.role !== "superadmin";
   }
 
   function canToggle(u: UserWithEmail) {
@@ -87,16 +105,30 @@ export default function UsersClient({ users: initial, currentUser }: Props) {
               </div>
               <p className="text-xs text-stone-400 mt-0.5 truncate">{u.email || "—"}</p>
             </div>
-            {canToggle(u) && (
-              <button
-                onClick={() => handleToggle(u)}
-                disabled={pending}
-                className="p-2 text-stone-300 hover:text-stone-600 transition-colors rounded-xl shrink-0"
-                title={u.active ? "Deactivate" : "Activate"}
-              >
-                {u.active ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4 text-green-500" />}
-              </button>
-            )}
+            <div className="flex items-center gap-1 shrink-0">
+              {canToggle(u) && (
+                <button
+                  onClick={() => handleToggle(u)}
+                  disabled={pending}
+                  className="p-2 text-stone-300 hover:text-stone-600 transition-colors rounded-xl"
+                  title={u.active ? "Deactivate" : "Activate"}
+                >
+                  {u.active ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4 text-green-500" />}
+                </button>
+              )}
+              {canDelete(u) && (
+                <button
+                  onClick={() => handleDelete(u)}
+                  disabled={pending}
+                  className="p-2 text-stone-300 hover:text-red-500 transition-colors rounded-xl"
+                  title="Delete user"
+                >
+                  {deletingId === u.id
+                    ? <Loader2 className="h-4 w-4 animate-spin" />
+                    : <Trash2 className="h-4 w-4" />}
+                </button>
+              )}
+            </div>
           </div>
         ))}
         {users.length === 0 && (
