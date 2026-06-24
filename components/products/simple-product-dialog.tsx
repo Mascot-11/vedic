@@ -63,7 +63,7 @@ export default function SimpleProductDialog({ product, onClose }: Props) {
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-sm">
+      <DialogContent className="w-full max-w-sm mx-4 max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{product ? "Edit Item" : "New Item"}</DialogTitle>
         </DialogHeader>
@@ -116,7 +116,7 @@ export default function SimpleProductDialog({ product, onClose }: Props) {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label>Low Stock Alert Below</Label>
+              <Label>Low Stock Alert</Label>
               <Input type="number" {...register("low_stock_threshold")} />
             </div>
             <div className="space-y-1.5">

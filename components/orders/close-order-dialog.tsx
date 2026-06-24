@@ -124,7 +124,7 @@ export default function CloseOrderDialog({ order, user, settings, onClose }: Pro
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-full max-w-md mx-4 max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Close Order</DialogTitle>
         </DialogHeader>
@@ -137,7 +137,7 @@ export default function CloseOrderDialog({ order, user, settings, onClose }: Pro
 
           <div className="mt-4 space-y-4">
             {/* Discount row */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label>Discount (Rs.)</Label>
                 <Input

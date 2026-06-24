@@ -119,29 +119,29 @@ export default function AddItemSheet({ orderId, products, onClose }: Props) {
                 return (
                   <div
                     key={product.id}
-                    className="flex items-center px-4 py-3.5 border-b border-stone-100 gap-3 active:bg-stone-50"
+                    className="flex items-center px-4 py-3 border-b border-stone-100 gap-2 active:bg-stone-50"
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-stone-900 leading-tight">{product.name}</p>
-                      <p className="text-sm text-stone-400 mt-0.5">Rs. {Number(product.price).toFixed(0)}</p>
+                      <p className="font-semibold text-stone-900 leading-tight truncate">{product.name}</p>
+                      <p className="text-xs text-stone-400 mt-0.5">Rs. {Number(product.price).toFixed(0)}</p>
                     </div>
 
                     {/* Qty stepper */}
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-1.5 shrink-0">
                       <button
                         onTouchStart={(e) => e.stopPropagation()}
                         onClick={() => bump(product.id, -1)}
-                        className="h-9 w-9 rounded-full border border-stone-200 flex items-center justify-center text-stone-500 hover:bg-stone-100 active:bg-stone-200 transition-colors"
+                        className="h-9 w-9 rounded-full border border-stone-200 flex items-center justify-center text-stone-500 active:bg-stone-200 transition-colors"
                       >
                         <Minus className="h-3.5 w-3.5" />
                       </button>
-                      <span className="w-6 text-center text-sm font-bold text-stone-900 tabular-nums select-none">
+                      <span className="w-5 text-center text-sm font-bold text-stone-900 tabular-nums select-none">
                         {q}
                       </span>
                       <button
                         onTouchStart={(e) => e.stopPropagation()}
                         onClick={() => bump(product.id, 1)}
-                        className="h-9 w-9 rounded-full border border-stone-200 flex items-center justify-center text-stone-500 hover:bg-stone-100 active:bg-stone-200 transition-colors"
+                        className="h-9 w-9 rounded-full border border-stone-200 flex items-center justify-center text-stone-500 active:bg-stone-200 transition-colors"
                       >
                         <Plus className="h-3.5 w-3.5" />
                       </button>
@@ -151,10 +151,10 @@ export default function AddItemSheet({ orderId, products, onClose }: Props) {
                       onClick={() => handleAdd(product)}
                       disabled={pending && adding === product.id}
                       className={cn(
-                        "h-10 px-5 rounded-xl text-sm font-bold transition-all active:scale-95 shrink-0",
+                        "h-10 w-14 rounded-xl text-sm font-bold transition-all active:scale-95 shrink-0",
                         isAdding
                           ? "bg-stone-100 text-stone-400 cursor-default"
-                          : "bg-stone-900 text-white hover:bg-stone-700"
+                          : "bg-stone-900 text-white"
                       )}
                     >
                       {isAdding ? "…" : "Add"}

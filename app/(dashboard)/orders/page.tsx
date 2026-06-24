@@ -71,15 +71,15 @@ export default async function OrderHistoryPage() {
       <p className="text-sm text-stone-400 mt-0.5 mb-5">Last 7 days</p>
 
       {/* Summary strip */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
+      <div className="grid grid-cols-3 sm:grid-cols-3 gap-2 mb-6">
         {[
           { label: "Orders", value: closed.length },
           { label: "Revenue", value: `Rs. ${fmt(totalRevenue)}` },
           { label: "Collected", value: `Rs. ${fmt(totalCollected)}` },
         ].map(({ label, value }) => (
-          <div key={label} className="bg-white rounded-2xl border border-stone-100 px-4 py-3">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-stone-400">{label}</p>
-            <p className="text-lg font-bold text-stone-900 mt-0.5">{value}</p>
+          <div key={label} className="bg-white rounded-2xl border border-stone-100 px-3 py-3">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-stone-400 truncate">{label}</p>
+            <p className="text-base font-bold text-stone-900 mt-0.5 truncate">{value}</p>
           </div>
         ))}
       </div>
@@ -100,10 +100,10 @@ export default async function OrderHistoryPage() {
                   >
                     <Clock className="h-4 w-4 text-amber-500 shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-stone-900 text-sm">
+                      <p className="font-semibold text-stone-900 text-sm truncate">
                         {(o.table as any)?.label ?? "—"}
                       </p>
-                      <p className="text-xs text-stone-400">Opened · {timeLabel(o.opened_at)}</p>
+                      <p className="text-xs text-stone-400 truncate">Opened · {timeLabel(o.opened_at)}</p>
                     </div>
                     <p className="font-bold text-stone-900 text-sm shrink-0">Rs. {fmt(Number(o.total_amount))}</p>
                   </Link>
@@ -134,7 +134,7 @@ export default async function OrderHistoryPage() {
                           {statusLabel(o)}
                         </span>
                       </div>
-                      <p className="text-xs text-stone-400">
+                      <p className="text-xs text-stone-400 truncate">
                         Closed · {timeLabel(o.closed_at ?? o.opened_at)}
                         {(o.closed_by_user as any)?.name ? ` · by ${(o.closed_by_user as any).name}` : ""}
                       </p>

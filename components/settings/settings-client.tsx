@@ -87,15 +87,15 @@ function TableRow({ table, onSaved }: { table: Table; onSaved: () => void }) {
       <td className="px-4 py-3 text-right">
         <div className="flex items-center justify-end gap-1">
           {table.active && !editing && (
-            <button onClick={() => setEditing(true)} className="p-1 text-stone-400 hover:text-stone-700">
-              <Pencil className="h-3.5 w-3.5" />
+            <button onClick={() => setEditing(true)} className="h-9 w-9 flex items-center justify-center rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100">
+              <Pencil className="h-4 w-4" />
             </button>
           )}
           <button
             onClick={handleToggle}
             disabled={pending}
             title={table.active ? "Remove table" : "Restore table"}
-            className="p-1 text-stone-400 hover:text-stone-700"
+            className="h-9 w-9 flex items-center justify-center rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100"
           >
             {table.active ? <PowerOff className="h-3.5 w-3.5" /> : <Power className="h-3.5 w-3.5 text-green-600" />}
           </button>

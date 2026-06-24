@@ -110,7 +110,7 @@ export default function UsersClient({ users: initial, currentUser }: Props) {
                 <button
                   onClick={() => handleToggle(u)}
                   disabled={pending}
-                  className="p-2 text-stone-300 hover:text-stone-600 transition-colors rounded-xl"
+                  className="h-11 w-11 flex items-center justify-center text-stone-300 hover:text-stone-600 transition-colors rounded-xl hover:bg-stone-100"
                   title={u.active ? "Deactivate" : "Activate"}
                 >
                   {u.active ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4 text-green-500" />}
@@ -120,7 +120,7 @@ export default function UsersClient({ users: initial, currentUser }: Props) {
                 <button
                   onClick={() => handleDelete(u)}
                   disabled={pending}
-                  className="p-2 text-stone-300 hover:text-red-500 transition-colors rounded-xl"
+                  className="h-11 w-11 flex items-center justify-center text-stone-300 hover:text-red-500 transition-colors rounded-xl hover:bg-red-50"
                   title="Delete user"
                 >
                   {deletingId === u.id

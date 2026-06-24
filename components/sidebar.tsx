@@ -46,9 +46,9 @@ export default function Sidebar({ user }: { user: User }) {
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 py-5"
         style={{ borderBottom: "1px solid oklch(0.22 0.014 48)" }}>
-        <div className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0"
-          style={{ background: "oklch(0.72 0.14 58)" }}>
-          <Coffee className="h-4 w-4 text-white" />
+        <div className="h-8 w-8 rounded-full overflow-hidden shrink-0 bg-stone-800">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.svg" alt="Vedic" className="h-full w-full object-cover" />
         </div>
         <div className="hidden md:block overflow-hidden">
           <p className="text-sm font-bold text-white leading-tight truncate">Vedic Coffee</p>

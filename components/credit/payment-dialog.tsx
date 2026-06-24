@@ -88,13 +88,13 @@ export default function PaymentDialog({ customer, user, onClose }: Props) {
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="w-full max-w-lg mx-4 max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Record Payment — {customer.name}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 mt-2">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Amount Received (Rs.)</Label>
               <Input
@@ -143,12 +143,11 @@ export default function PaymentDialog({ customer, user, onClose }: Props) {
             </div>
             <div className="space-y-1.5">
               {customer.unpaid_orders.map((o) => (
-                <div key={o.id} className="flex items-center gap-3 text-sm">
-                  <span className="flex-1 text-stone-600">
-                    {o.table?.label ?? "?"} ·{" "}
-                    {new Date(o.opened_at).toLocaleDateString()} (due Rs.{" "}
-                    {Number(o.balance_due).toFixed(2)})
-                  </span>
+                <div key={o.id} className="flex items-center justify-between gap-3 text-sm py-1">
+                  <div className="min-w-0">
+                    <p className="font-medium text-stone-800 truncate">{o.table?.label ?? "?"}</p>
+                    <p className="text-xs text-stone-400">{new Date(o.opened_at).toLocaleDateString()} · Due Rs. {Number(o.balance_due).toFixed(2)}</p>
+                  </div>
                   <Input
                     type="number"
                     step="0.01"
@@ -158,7 +157,7 @@ export default function PaymentDialog({ customer, user, onClose }: Props) {
                     onChange={(e) =>
                       handleManualChange(o.id, parseFloat(e.target.value) || 0)
                     }
-                    className="w-24 text-right h-8 text-xs"
+                    className="w-24 text-right h-10 text-sm shrink-0"
                   />
                 </div>
               ))}

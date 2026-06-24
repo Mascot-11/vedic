@@ -24,7 +24,7 @@ export default function NewOrderDialog({ table, onClose }: NewOrderDialogProps) 
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-sm">
+      <DialogContent className="w-full max-w-sm mx-4">
         <DialogHeader>
           <DialogTitle>Open tab for {table.label}</DialogTitle>
           <DialogDescription>

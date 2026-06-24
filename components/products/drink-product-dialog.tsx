@@ -79,7 +79,7 @@ export default function DrinkProductDialog({ product, beanTypes, onClose }: Prop
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-sm">
+      <DialogContent className="w-full max-w-sm mx-4 max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{product ? "Edit Drink" : "New Drink Product"}</DialogTitle>
         </DialogHeader>
@@ -109,7 +109,7 @@ export default function DrinkProductDialog({ product, beanTypes, onClose }: Prop
             </label>
 
             {isCoffee && (
-              <div className="grid grid-cols-2 gap-3 pt-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                 <div className="space-y-1.5">
                   <Label>Bean Type</Label>
                   {beanTypes.length > 0 ? (

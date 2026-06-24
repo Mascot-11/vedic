@@ -64,6 +64,37 @@ export async function addItemToOrder(
   revalidatePath(`/orders/${orderId}`);
 }
 
+export async function updateOrderItemQty(orderId: string, itemId: string, newQty: number) {
+  const db = createAdminClient();
+  const user = await getCurrentUser();
+  if (!user) throw new Error("Unauthorized");
+
+  const { data: item } = await db
+    .from("order_items")
+    .select("qty, product_id, product_type")
+    .eq("id", itemId)
+    .single();
+  if (!item) throw new Error("Item not found");
+  if (item.qty === newQty) return;
+
+  // Remove existing item (restores stock), then re-add at new qty if > 0
+  const { error: removeErr } = await db.rpc("remove_order_item", { p_item_id: itemId, p_actor_id: user.id });
+  if (removeErr) throw new Error(removeErr.message);
+
+  if (newQty > 0) {
+    const { error: addErr } = await db.rpc("add_order_item", {
+      p_order_id: orderId,
+      p_product_id: item.product_id,
+      p_product_type: item.product_type,
+      p_qty: newQty,
+      p_actor_id: user.id,
+    });
+    if (addErr) throw new Error(addErr.message);
+  }
+
+  revalidatePath(`/orders/${orderId}`);
+}
+
 export async function removeOrderItem(orderId: string, itemId: string) {
   const db = createAdminClient();
   const user = await getCurrentUser();
