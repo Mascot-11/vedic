@@ -27,7 +27,7 @@ type FormData = z.infer<typeof schema>;
 interface Props {
   settings: any;
   tables: Table[];
-  isSuperadmin: boolean;
+  canEditShop: boolean;
 }
 
 function TableRow({ table, onSaved }: { table: Table; onSaved: () => void }) {
@@ -105,7 +105,7 @@ function TableRow({ table, onSaved }: { table: Table; onSaved: () => void }) {
   );
 }
 
-export default function SettingsClient({ settings, tables: initialTables, isSuperadmin }: Props) {
+export default function SettingsClient({ settings, tables: initialTables, canEditShop }: Props) {
   const [tables, setTables] = useState(initialTables);
   const [newLabel, setNewLabel] = useState("");
   const [addPending, startAdd] = useTransition();
@@ -150,7 +150,7 @@ export default function SettingsClient({ settings, tables: initialTables, isSupe
     <Tabs defaultValue="tables" className="max-w-lg">
       <TabsList>
         <TabsTrigger value="tables">Tables</TabsTrigger>
-        {isSuperadmin && <TabsTrigger value="shop">Shop Config</TabsTrigger>}
+        {canEditShop && <TabsTrigger value="shop">Shop Config</TabsTrigger>}
       </TabsList>
 
       {/* ── Tables ── */}
@@ -195,7 +195,7 @@ export default function SettingsClient({ settings, tables: initialTables, isSupe
       </TabsContent>
 
       {/* ── Shop Config (superadmin only) ── */}
-      {isSuperadmin && (
+      {canEditShop && (
         <TabsContent value="shop" className="mt-4">
           <form onSubmit={handleSubmit(onSaveSettings)} className="space-y-4 bg-white rounded-xl border border-stone-200 p-5">
             <div className="space-y-1.5">
