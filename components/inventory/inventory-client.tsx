@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Plus, AlertTriangle, Package } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Plus, AlertTriangle, Package, Pencil, Trash2, SlidersHorizontal, Loader2 } from "lucide-react";
 import { BrewingStock, BeanBatch, User } from "@/lib/types";
 import AddBatchDialog from "./add-batch-dialog";
+import { updateBrewingThreshold, deleteBatch, manualStockAdjustment } from "@/app/actions/inventory";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -15,8 +18,120 @@ interface Props {
   user: User;
 }
 
-export default function InventoryClient({ brewing, batches, allocations }: Props) {
+const isOwner = (u: User) => u.role === "owner" || u.role === "superadmin";
+
+function ThresholdEditor({ b, onDone }: { b: BrewingStock; onDone: () => void }) {
+  const [val, setVal] = useState(String(Number(b.low_stock_threshold_grams).toFixed(0)));
+  const [pending, start] = useTransition();
+
+  function save() {
+    const n = parseInt(val);
+    if (isNaN(n) || n < 0) { toast.error("Enter a valid number"); return; }
+    start(async () => {
+      try {
+        await updateBrewingThreshold(b.bean_type, n);
+        toast.success("Threshold updated");
+        onDone();
+      } catch (e: any) { toast.error(e.message); }
+    });
+  }
+
+  return (
+    <div className="flex items-center gap-2 mt-3">
+      <div className="relative flex-1">
+        <Input
+          type="number"
+          min="0"
+          value={val}
+          onChange={(e) => setVal(e.target.value)}
+          className="pr-6 h-8 text-sm"
+          autoFocus
+          onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") onDone(); }}
+        />
+        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-stone-400">g</span>
+      </div>
+      <Button size="sm" className="h-8 px-3 text-xs" onClick={save} disabled={pending}>
+        {pending ? <Loader2 className="h-3 w-3 animate-spin" /> : "Save"}
+      </Button>
+      <Button size="sm" variant="outline" className="h-8 px-3 text-xs" onClick={onDone} disabled={pending}>
+        Cancel
+      </Button>
+    </div>
+  );
+}
+
+function AdjustEditor({ b, onDone }: { b: BrewingStock; onDone: () => void }) {
+  const [delta, setDelta] = useState("");
+  const [note, setNote] = useState("");
+  const [pending, start] = useTransition();
+
+  function save() {
+    const n = parseInt(delta);
+    if (isNaN(n) || n === 0) { toast.error("Enter a non-zero amount"); return; }
+    start(async () => {
+      try {
+        await manualStockAdjustment({ bean_type: b.bean_type, change_qty: n, note });
+        toast.success("Stock adjusted");
+        onDone();
+      } catch (e: any) { toast.error(e.message); }
+    });
+  }
+
+  return (
+    <div className="mt-3 space-y-2">
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Input
+            type="number"
+            value={delta}
+            onChange={(e) => setDelta(e.target.value)}
+            placeholder="+500 or -200"
+            className="pr-6 h-8 text-sm"
+            autoFocus
+          />
+          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-stone-400">g</span>
+        </div>
+      </div>
+      <Input
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+        placeholder="Reason (optional)"
+        className="h-8 text-sm"
+      />
+      <div className="flex gap-2">
+        <Button size="sm" className="h-8 px-3 text-xs flex-1" onClick={save} disabled={pending}>
+          {pending ? <Loader2 className="h-3 w-3 animate-spin" /> : "Apply"}
+        </Button>
+        <Button size="sm" variant="outline" className="h-8 px-3 text-xs" onClick={onDone} disabled={pending}>
+          Cancel
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+export default function InventoryClient({ brewing, batches, allocations, user }: Props) {
   const [showAddBatch, setShowAddBatch] = useState(false);
+  const [editThreshold, setEditThreshold] = useState<string | null>(null);
+  const [adjustStock, setAdjustStock] = useState<string | null>(null);
+  const [deletingBatch, startDelete] = useTransition();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const owner = isOwner(user);
+
+  function handleDeleteBatch(id: string) {
+    if (!confirm("Delete this batch? This cannot be undone.")) return;
+    setDeletingId(id);
+    startDelete(async () => {
+      try {
+        await deleteBatch(id);
+        toast.success("Batch deleted");
+      } catch (e: any) {
+        toast.error(e.message);
+      } finally {
+        setDeletingId(null);
+      }
+    });
+  }
 
   return (
     <>
@@ -39,6 +154,8 @@ export default function InventoryClient({ brewing, batches, allocations }: Props
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
               {brewing.map((b) => {
                 const isLow = b.qty_remaining_grams <= b.low_stock_threshold_grams;
+                const isEditingThreshold = editThreshold === b.bean_type;
+                const isAdjusting = adjustStock === b.bean_type;
                 return (
                   <div
                     key={b.id}
@@ -55,8 +172,35 @@ export default function InventoryClient({ brewing, batches, allocations }: Props
                       {Number(b.qty_remaining_grams).toFixed(0)}
                       <span className="text-sm font-normal text-stone-400 ml-1">g</span>
                     </p>
-                    {isLow && (
-                      <p className="text-xs text-red-500 mt-1 font-medium">Low stock</p>
+                    <p className="text-xs text-stone-400 mt-1">
+                      threshold: {Number(b.low_stock_threshold_grams).toFixed(0)}g
+                    </p>
+
+                    {owner && (
+                      <>
+                        {!isEditingThreshold && !isAdjusting && (
+                          <div className="flex gap-1.5 mt-3">
+                            <button
+                              onClick={() => { setEditThreshold(b.bean_type); setAdjustStock(null); }}
+                              className="flex items-center gap-1 text-[11px] text-stone-400 hover:text-stone-700 px-2 py-1 rounded-lg hover:bg-stone-100 transition-colors"
+                            >
+                              <Pencil className="h-3 w-3" /> Threshold
+                            </button>
+                            <button
+                              onClick={() => { setAdjustStock(b.bean_type); setEditThreshold(null); }}
+                              className="flex items-center gap-1 text-[11px] text-stone-400 hover:text-stone-700 px-2 py-1 rounded-lg hover:bg-stone-100 transition-colors"
+                            >
+                              <SlidersHorizontal className="h-3 w-3" /> Adjust
+                            </button>
+                          </div>
+                        )}
+                        {isEditingThreshold && (
+                          <ThresholdEditor b={b} onDone={() => setEditThreshold(null)} />
+                        )}
+                        {isAdjusting && (
+                          <AdjustEditor b={b} onDone={() => setAdjustStock(null)} />
+                        )}
+                      </>
                     )}
                   </div>
                 );
@@ -86,9 +230,22 @@ export default function InventoryClient({ brewing, batches, allocations }: Props
                       {b.name && <p className="text-xs text-stone-400">{b.bean_type}</p>}
                       {b.remarks && <p className="text-xs text-stone-400 mt-1 italic">{b.remarks}</p>}
                     </div>
-                    <p className="text-xs text-stone-400 shrink-0">
-                      {new Date(b.created_at).toLocaleDateString()}
-                    </p>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <p className="text-xs text-stone-400">
+                        {new Date(b.created_at).toLocaleDateString()}
+                      </p>
+                      {owner && (
+                        <button
+                          onClick={() => handleDeleteBatch(b.id)}
+                          disabled={deletingBatch && deletingId === b.id}
+                          className="p-1.5 rounded-lg text-stone-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                        >
+                          {deletingBatch && deletingId === b.id
+                            ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            : <Trash2 className="h-3.5 w-3.5" />}
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <div className="flex items-center gap-4 mt-3 text-sm">
                     <div>

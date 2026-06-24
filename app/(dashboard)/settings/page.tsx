@@ -19,7 +19,7 @@ export default async function SettingsPage() {
       <SettingsClient
         settings={settings}
         tables={tables ?? []}
-        isSuperadmin={user.role === "superadmin"}
+        canEditShop={user.role === "superadmin" || user.role === "owner"}
       />
     </div>
   );

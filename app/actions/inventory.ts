@@ -4,6 +4,12 @@ import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser } from "@/lib/auth";
 
+async function requireOwner() {
+  const user = await getCurrentUser();
+  if (!user || (user.role !== "owner" && user.role !== "superadmin")) throw new Error("Unauthorized");
+  return user;
+}
+
 export async function createBatch(data: {
   bean_type: string;
   name: string;
@@ -22,6 +28,25 @@ export async function createBatch(data: {
     p_actor_id:    user.id,
   });
 
+  if (error) throw new Error(error.message);
+  revalidatePath("/inventory");
+}
+
+export async function updateBrewingThreshold(beanType: string, thresholdGrams: number) {
+  await requireOwner();
+  const db = createAdminClient();
+  const { error } = await db
+    .from("brewing_stock")
+    .update({ low_stock_threshold_grams: thresholdGrams })
+    .eq("bean_type", beanType);
+  if (error) throw new Error(error.message);
+  revalidatePath("/inventory");
+}
+
+export async function deleteBatch(batchId: string) {
+  await requireOwner();
+  const db = createAdminClient();
+  const { error } = await db.from("bean_batches").delete().eq("id", batchId);
   if (error) throw new Error(error.message);
   revalidatePath("/inventory");
 }
