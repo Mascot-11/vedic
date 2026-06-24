@@ -46,6 +46,8 @@ export async function updateBrewingThreshold(beanType: string, thresholdGrams: n
 export async function deleteBatch(batchId: string) {
   await requireOwner();
   const db = createAdminClient();
+  // Remove allocations first (no ON DELETE CASCADE on this FK)
+  await db.from("stock_allocations").delete().eq("from_batch_id", batchId);
   const { error } = await db.from("bean_batches").delete().eq("id", batchId);
   if (error) throw new Error(error.message);
   revalidatePath("/inventory");
