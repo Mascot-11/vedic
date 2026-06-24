@@ -30,16 +30,24 @@ export default async function OrderHistoryPage() {
     return n.toLocaleString("en-IN", { maximumFractionDigits: 0 });
   }
 
+  const TZ = "Asia/Kathmandu";
+
   function timeLabel(dateStr: string) {
     const d = new Date(dateStr);
-    const today = new Date();
-    const isToday = d.toDateString() === today.toDateString();
-    const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
-    const isYesterday = d.toDateString() === yesterday.toDateString();
-    const time = d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
-    if (isToday) return `Today · ${time}`;
-    if (isYesterday) return `Yesterday · ${time}`;
-    return d.toLocaleDateString("en-IN", { day: "numeric", month: "short" }) + ` · ${time}`;
+
+    const todayNPT = new Date(new Date().toLocaleString("en-US", { timeZone: TZ }));
+    const dNPT     = new Date(d.toLocaleString("en-US", { timeZone: TZ }));
+
+    const isToday     = dNPT.toDateString() === todayNPT.toDateString();
+    const yesterdayNPT = new Date(todayNPT); yesterdayNPT.setDate(todayNPT.getDate() - 1);
+    const isYesterday = dNPT.toDateString() === yesterdayNPT.toDateString();
+
+    const time = d.toLocaleTimeString("en-US", { timeZone: TZ, hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true });
+    const date = d.toLocaleDateString("en-US", { timeZone: TZ, day: "numeric", month: "short", year: "numeric" });
+
+    if (isToday)     return `Today · ${time} NPT`;
+    if (isYesterday) return `Yesterday · ${time} NPT`;
+    return `${date} · ${time} NPT`;
   }
 
   function statusColor(o: typeof rows[0]) {
@@ -95,7 +103,7 @@ export default async function OrderHistoryPage() {
                       <p className="font-semibold text-stone-900 text-sm">
                         {(o.table as any)?.label ?? "—"}
                       </p>
-                      <p className="text-xs text-stone-400">{timeLabel(o.opened_at)}</p>
+                      <p className="text-xs text-stone-400">Opened · {timeLabel(o.opened_at)}</p>
                     </div>
                     <p className="font-bold text-stone-900 text-sm shrink-0">Rs. {fmt(Number(o.total_amount))}</p>
                   </Link>
@@ -127,8 +135,8 @@ export default async function OrderHistoryPage() {
                         </span>
                       </div>
                       <p className="text-xs text-stone-400">
-                        {timeLabel(o.closed_at ?? o.opened_at)}
-                        {(o.closed_by_user as any)?.name ? ` · ${(o.closed_by_user as any).name}` : ""}
+                        Closed · {timeLabel(o.closed_at ?? o.opened_at)}
+                        {(o.closed_by_user as any)?.name ? ` · by ${(o.closed_by_user as any).name}` : ""}
                       </p>
                     </div>
                     <div className="text-right shrink-0">
