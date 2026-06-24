@@ -29,7 +29,7 @@ export default async function UsersPage() {
   }));
 
   return (
-    <div className="p-6">
+    <div className="p-4">
       <h1 className="text-xl font-semibold text-stone-900 mb-6">Users</h1>
       <UsersClient users={usersWithEmail} currentUser={user} />
     </div>

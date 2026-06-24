@@ -138,7 +138,7 @@ export default function UsersClient({ users: initial, currentUser }: Props) {
 
       {showAdd && (
         <Dialog open onOpenChange={(open) => !open && setShowAdd(false)}>
-          <DialogContent className="max-w-sm mx-4">
+          <DialogContent className="sm:max-w-sm">
             <DialogHeader>
               <DialogTitle>Add User</DialogTitle>
               <DialogDescription>Account is active immediately — no email verification.</DialogDescription>

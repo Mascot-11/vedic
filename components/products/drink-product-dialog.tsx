@@ -79,7 +79,7 @@ export default function DrinkProductDialog({ product, beanTypes, onClose }: Prop
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="w-full max-w-sm mx-4 max-h-[90dvh] overflow-y-auto">
+      <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>{product ? "Edit Drink" : "New Drink Product"}</DialogTitle>
         </DialogHeader>

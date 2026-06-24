@@ -63,7 +63,7 @@ export default function SimpleProductDialog({ product, onClose }: Props) {
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="w-full max-w-sm mx-4 max-h-[90dvh] overflow-y-auto">
+      <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>{product ? "Edit Item" : "New Item"}</DialogTitle>
         </DialogHeader>

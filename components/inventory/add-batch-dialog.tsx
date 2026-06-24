@@ -48,7 +48,7 @@ export default function AddBatchDialog({ onClose }: { onClose: () => void }) {
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-sm">
+      <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>Add Bean Batch</DialogTitle>
           <DialogDescription>

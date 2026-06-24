@@ -14,7 +14,7 @@ export default async function SettingsPage() {
   ]);
 
   return (
-    <div className="p-6">
+    <div className="p-4">
       <h1 className="text-xl font-semibold text-stone-900 mb-6">Settings</h1>
       <SettingsClient
         settings={settings}

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutGrid, Bean, CreditCard, ClipboardList,
-  BarChart3, Settings, UserCircle, WifiOff,
+  BarChart3, Settings, UserCircle, Package, Users, WifiOff,
 } from "lucide-react";
 import { User, Role } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -17,7 +17,9 @@ const allNav: NavItem[] = [
   { href: "/inventory", label: "Inventory", icon: Bean,          roles: ["superadmin","owner","staff"] },
   { href: "/credit",    label: "Credit",    icon: CreditCard,    roles: ["superadmin","owner","staff"] },
   { href: "/orders",    label: "Orders",    icon: ClipboardList, roles: ["superadmin","owner"] },
+  { href: "/products",  label: "Products",  icon: Package,       roles: ["superadmin","owner"] },
   { href: "/reports",   label: "Reports",   icon: BarChart3,     roles: ["superadmin","owner"] },
+  { href: "/users",     label: "Users",     icon: Users,         roles: ["superadmin","owner"] },
   { href: "/settings",  label: "Settings",  icon: Settings,      roles: ["superadmin","owner"] },
   { href: "/account",   label: "Account",   icon: UserCircle,    roles: ["superadmin","owner","staff"] },
 ];
@@ -33,7 +35,7 @@ export default function BottomNav({ user }: { user: User }) {
       className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-white border-t border-stone-200"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
-      <div className="flex items-stretch overflow-x-auto scrollbar-none">
+      <div className="flex overflow-x-auto scrollbar-none">
         {visible.map((item) => {
           const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
           return (
@@ -41,19 +43,19 @@ export default function BottomNav({ user }: { user: User }) {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex-1 min-w-14 flex flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-medium transition-colors relative",
+                "shrink-0 flex flex-col items-center justify-center gap-0.5 px-3 py-2.5 min-w-15 text-[10px] font-semibold transition-colors relative",
                 active ? "text-stone-900" : "text-stone-400"
               )}
             >
               <div className="relative">
-                <item.icon className={cn("h-5.5 w-5.5", active ? "text-stone-900" : "text-stone-400")} />
+                <item.icon className={cn("h-5 w-5", active ? "text-stone-900" : "text-stone-400")} />
                 {item.href === "/account" && (!isOnline || pendingCount > 0) && (
                   <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-red-500" />
                 )}
               </div>
               <span className="leading-none">{item.label}</span>
               {active && (
-                <span className="absolute top-0 inset-x-0 h-0.5 rounded-full bg-stone-900" />
+                <span className="absolute top-0 left-2 right-2 h-0.5 rounded-full bg-stone-900" />
               )}
             </Link>
           );

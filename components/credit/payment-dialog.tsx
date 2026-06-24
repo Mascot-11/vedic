@@ -88,7 +88,7 @@ export default function PaymentDialog({ customer, user, onClose }: Props) {
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="w-full max-w-lg mx-4 max-h-[90dvh] overflow-y-auto">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Record Payment — {customer.name}</DialogTitle>
         </DialogHeader>

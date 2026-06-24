@@ -147,7 +147,7 @@ export default function SettingsClient({ settings, tables: initialTables, canEdi
   }
 
   return (
-    <Tabs defaultValue="tables" className="max-w-lg">
+    <Tabs defaultValue="tables" className="w-full max-w-lg">
       <TabsList>
         <TabsTrigger value="tables">Tables</TabsTrigger>
         {canEditShop && <TabsTrigger value="shop">Shop Config</TabsTrigger>}
@@ -169,28 +169,13 @@ export default function SettingsClient({ settings, tables: initialTables, canEdi
           </Button>
         </div>
 
-        <div className="bg-white rounded-xl border border-stone-200 overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-stone-50 border-b border-stone-200">
-              <tr>
-                <th className="text-left px-4 py-2.5 font-medium text-stone-600">Name</th>
-                <th className="text-left px-4 py-2.5 font-medium text-stone-600">Status</th>
-                <th className="w-20" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-100">
-              {tables.map((t) => (
-                <TableRow key={t.id} table={t} onSaved={() => {}} />
-              ))}
-              {tables.length === 0 && (
-                <tr>
-                  <td colSpan={3} className="px-4 py-8 text-center text-sm text-stone-400">
-                    No tables yet. Add one above.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        <div className="bg-white rounded-xl border border-stone-200 overflow-hidden divide-y divide-stone-100">
+          {tables.length === 0 && (
+            <p className="px-4 py-8 text-center text-sm text-stone-400">No tables yet. Add one above.</p>
+          )}
+          {tables.map((t) => (
+            <TableRow key={t.id} table={t} onSaved={() => {}} />
+          ))}
         </div>
       </TabsContent>
 

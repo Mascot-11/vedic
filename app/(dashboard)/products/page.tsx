@@ -21,7 +21,7 @@ export default async function ProductsPage() {
   const beanTypes = [...new Set((beanBatches ?? []).map((b) => b.bean_type))];
 
   return (
-    <div className="p-6">
+    <div className="p-4">
       <h1 className="text-xl font-semibold text-stone-900 mb-6">Products</h1>
       <ProductsClient
         drinks={drinks ?? []}

@@ -55,7 +55,7 @@ export default async function ReportsPage() {
   });
 
   return (
-    <div className="p-6">
+    <div className="p-4">
       <h1 className="text-xl font-semibold text-stone-900 mb-6">Reports</h1>
       <ReportsDashboard
         daily={calcPeriod(dailyOrders ?? [])}

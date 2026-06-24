@@ -25,7 +25,7 @@ export default async function CreditPage() {
   }));
 
   return (
-    <div className="p-5">
+    <div className="p-4">
       <div className="mb-5">
         <h1 className="text-xl font-bold text-stone-900">Credit & Dues</h1>
         <p className="text-sm text-stone-400 mt-0.5">Track outstanding balances</p>

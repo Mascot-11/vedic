@@ -16,14 +16,16 @@ export default async function DashboardLayout({
 
   return (
     <OfflineProvider>
-      <div className="flex h-full min-h-screen bg-stone-50">
-        {/* Sidebar: hidden on mobile, shown md+ */}
+      <div className="flex min-h-screen bg-stone-50">
+        {/* Sidebar: desktop only */}
         <div className="hidden md:flex md:shrink-0">
           <Sidebar user={user} />
         </div>
-        {/* Main content: add bottom padding on mobile for the bottom nav */}
-        <main className="flex-1 overflow-auto pb-20 md:pb-0 flex flex-col">
-          <div className="flex-1">{children}</div>
+        {/* Main: safe bottom padding on mobile for nav bar */}
+        <main className="flex-1 min-w-0 overflow-x-hidden flex flex-col" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 4rem)" }}>
+          <div className="flex-1 w-full max-w-full md:pb-0">
+            {children}
+          </div>
           <footer className="hidden md:block px-6 py-3 text-center">
             <p className="text-[11px] text-stone-300">
               Developed by{" "}
@@ -39,8 +41,10 @@ export default async function DashboardLayout({
           </footer>
         </main>
       </div>
-      {/* Bottom nav: only on mobile */}
-      <BottomNav user={user} />
+      {/* Bottom nav: mobile only */}
+      <div className="md:hidden">
+        <BottomNav user={user} />
+      </div>
     </OfflineProvider>
   );
 }

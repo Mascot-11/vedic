@@ -30,7 +30,7 @@ export default async function InventoryPage() {
   });
 
   return (
-    <div className="p-6">
+    <div className="p-4">
       <h1 className="text-xl font-semibold text-stone-900 mb-6">Bean Inventory</h1>
       <InventoryClient
         brewing={brewing ?? []}

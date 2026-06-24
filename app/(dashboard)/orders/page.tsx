@@ -66,20 +66,20 @@ export default async function OrderHistoryPage() {
   }
 
   return (
-    <div className="p-5 max-w-2xl">
+    <div className="p-4 max-w-2xl">
       <h1 className="text-xl font-bold text-stone-900">Order History</h1>
-      <p className="text-sm text-stone-400 mt-0.5 mb-5">Last 7 days</p>
+      <p className="text-sm text-stone-400 mt-0.5 mb-4">Last 7 days</p>
 
-      {/* Summary strip */}
-      <div className="grid grid-cols-3 sm:grid-cols-3 gap-2 mb-6">
+      {/* Summary strip — stacks nicely at any width */}
+      <div className="grid grid-cols-3 gap-2 mb-5">
         {[
-          { label: "Orders", value: closed.length },
-          { label: "Revenue", value: `Rs. ${fmt(totalRevenue)}` },
-          { label: "Collected", value: `Rs. ${fmt(totalCollected)}` },
+          { label: "Orders", value: String(closed.length) },
+          { label: "Revenue", value: `Rs.${fmt(totalRevenue)}` },
+          { label: "Collected", value: `Rs.${fmt(totalCollected)}` },
         ].map(({ label, value }) => (
-          <div key={label} className="bg-white rounded-2xl border border-stone-100 px-3 py-3">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-stone-400 truncate">{label}</p>
-            <p className="text-base font-bold text-stone-900 mt-0.5 truncate">{value}</p>
+          <div key={label} className="bg-white rounded-2xl border border-stone-100 px-2.5 py-2.5">
+            <p className="text-[9px] font-bold uppercase tracking-wider text-stone-400">{label}</p>
+            <p className="text-sm font-bold text-stone-900 mt-0.5 truncate">{value}</p>
           </div>
         ))}
       </div>
