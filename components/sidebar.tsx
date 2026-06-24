@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutGrid, Coffee, Bean, CreditCard,
   BarChart3, Users, Settings, LogOut, UserCircle,
-  WifiOff, RefreshCw,
+  WifiOff, RefreshCw, ClipboardList,
 } from "lucide-react";
 import { logout } from "@/app/actions/auth";
 import { User, Role } from "@/lib/types";
@@ -19,6 +19,7 @@ const navItems: NavItem[] = [
   { href: "/products",  label: "Products",   icon: Coffee,      roles: ["superadmin","owner"] },
   { href: "/inventory", label: "Inventory",  icon: Bean,        roles: ["superadmin","owner","staff"] },
   { href: "/credit",    label: "Credit",     icon: CreditCard,  roles: ["superadmin","owner","staff"] },
+  { href: "/orders",    label: "Orders",     icon: ClipboardList, roles: ["superadmin","owner"] },
   { href: "/reports",   label: "Reports",    icon: BarChart3,   roles: ["superadmin","owner"] },
   { href: "/users",     label: "Users",      icon: Users,       roles: ["superadmin","owner"] },
   { href: "/settings",  label: "Settings",   icon: Settings,    roles: ["superadmin","owner"] },
