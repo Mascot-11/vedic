@@ -101,14 +101,14 @@ function CustomerRow({ c, owner, onPay }: { c: CustomerWithBalance; owner: boole
             <p className="text-sm text-green-600">All clear</p>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 shrink-0">
           {hasDebt && (
             <Button
               size="sm"
-              className="h-8 px-3 text-xs rounded-lg"
+              className="h-9 px-2.5 text-xs rounded-lg whitespace-nowrap"
               onClick={(e) => { e.stopPropagation(); onPay(); }}
             >
-              Record Payment
+              Pay
             </Button>
           )}
           {expanded ? <ChevronUp className="h-4 w-4 text-stone-400" /> : <ChevronDown className="h-4 w-4 text-stone-400" />}

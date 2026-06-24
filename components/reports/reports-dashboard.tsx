@@ -43,7 +43,7 @@ function PeriodCard({
       </div>
 
       <div>
-        <p className={`text-3xl font-bold tracking-tight ${accent ? "text-white" : "text-stone-900"}`}>
+        <p className={`text-2xl font-bold tracking-tight leading-tight ${accent ? "text-white" : "text-stone-900"}`}>
           Rs. {fmt(data.revenue)}
         </p>
         <p className={`text-xs mt-1 ${accent ? "text-stone-400" : "text-stone-400"}`}>

@@ -57,51 +57,50 @@ function TableRow({ table, onSaved }: { table: Table; onSaved: () => void }) {
   }
 
   return (
-    <tr>
-      <td className="px-4 py-3">
+    <div className="flex items-center gap-3 px-4 py-3">
+      <div className="flex-1 min-w-0">
         {editing ? (
           <div className="flex items-center gap-2">
             <Input
               value={label}
               onChange={(e) => setLabel(e.target.value)}
-              className="h-8 text-sm w-40"
+              className="h-9 text-sm flex-1"
               autoFocus
               onKeyDown={(e) => { if (e.key === "Enter") handleRename(); if (e.key === "Escape") setEditing(false); }}
             />
-            <button onClick={handleRename} disabled={pending} className="text-green-600 hover:text-green-700">
+            <button onClick={handleRename} disabled={pending} className="h-9 w-9 flex items-center justify-center text-green-600">
               <Check className="h-4 w-4" />
             </button>
-            <button onClick={() => { setEditing(false); setLabel(table.label); }} className="text-stone-400 hover:text-stone-600">
+            <button onClick={() => { setEditing(false); setLabel(table.label); }} className="h-9 w-9 flex items-center justify-center text-stone-400">
               <X className="h-4 w-4" />
             </button>
           </div>
         ) : (
-          <span className="font-medium text-stone-900">{table.label}</span>
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-stone-900 truncate">{table.label}</span>
+            <Badge variant={table.active ? "default" : "secondary"} className="text-[10px] shrink-0">
+              {table.active ? "Active" : "Off"}
+            </Badge>
+          </div>
         )}
-      </td>
-      <td className="px-4 py-3">
-        <Badge variant={table.active ? "default" : "secondary"} className="text-xs">
-          {table.active ? "Active" : "Removed"}
-        </Badge>
-      </td>
-      <td className="px-4 py-3 text-right">
-        <div className="flex items-center justify-end gap-1">
-          {table.active && !editing && (
-            <button onClick={() => setEditing(true)} className="h-9 w-9 flex items-center justify-center rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100">
+      </div>
+      {!editing && (
+        <div className="flex items-center gap-1 shrink-0">
+          {table.active && (
+            <button onClick={() => setEditing(true)} className="h-10 w-10 flex items-center justify-center rounded-xl text-stone-400 hover:text-stone-700 hover:bg-stone-100">
               <Pencil className="h-4 w-4" />
             </button>
           )}
           <button
             onClick={handleToggle}
             disabled={pending}
-            title={table.active ? "Remove table" : "Restore table"}
-            className="h-9 w-9 flex items-center justify-center rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100"
+            className="h-10 w-10 flex items-center justify-center rounded-xl text-stone-400 hover:text-stone-700 hover:bg-stone-100"
           >
-            {table.active ? <PowerOff className="h-3.5 w-3.5" /> : <Power className="h-3.5 w-3.5 text-green-600" />}
+            {table.active ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4 text-green-600" />}
           </button>
         </div>
-      </td>
-    </tr>
+      )}
+    </div>
   );
 }
 

@@ -151,7 +151,7 @@ export default function InventoryClient({ brewing, batches, allocations, user }:
               <p className="text-stone-300 text-xs mt-1">Add a batch to get started.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
               {brewing.map((b) => {
                 const isLow = b.qty_remaining_grams <= b.low_stock_threshold_grams;
                 const isEditingThreshold = editThreshold === b.bean_type;
