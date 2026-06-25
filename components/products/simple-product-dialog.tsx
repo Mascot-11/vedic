@@ -53,10 +53,10 @@ export default function SimpleProductDialog({ product, onClose }: Props) {
     startTransition(async () => {
       try {
         await upsertSimpleProduct({ ...data, id: product?.id });
-        toast.success(product ? "Product updated" : "Product created");
+        toast.success(product ? "Changes saved" : "Product added");
         onClose();
       } catch (e: any) {
-        toast.error(e.message);
+        toast.error('Something went wrong. Please try again.');
       }
     });
   }

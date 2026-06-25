@@ -1,3 +1,5 @@
+export const revalidate = 10;
+
 import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser } from "@/lib/auth";

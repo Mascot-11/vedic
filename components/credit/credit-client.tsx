@@ -47,34 +47,50 @@ function CustomerRow({ c, owner, onPay }: { c: CustomerWithBalance; owner: boole
     start(async () => {
       try {
         await renameCustomer(c.id, nameVal.trim());
-        toast.success("Customer renamed");
+        toast.success("Name updated");
         setEditing(false);
-      } catch (e: any) { toast.error(e.message); }
+      } catch (e: any) { toast.error('Something went wrong. Please try again.'); }
       finally { setActionId(null); }
     });
   }
 
   function handleWriteOff() {
-    if (!confirm(`Write off Rs. ${c.total_balance.toFixed(2)} balance for ${c.name}? This cannot be undone.`)) return;
-    setActionId("writeoff");
-    start(async () => {
-      try {
-        await writeOffCustomerBalance(c.id);
-        toast.success("Balance written off");
-      } catch (e: any) { toast.error(e.message); }
-      finally { setActionId(null); }
+    toast(`Write off Rs. ${c.total_balance.toFixed(2)} for ${c.name}?`, {
+      description: "This cannot be undone.",
+      action: {
+        label: "Write Off",
+        onClick: () => {
+          setActionId("writeoff");
+          start(async () => {
+            try {
+              await writeOffCustomerBalance(c.id);
+              toast.success("Balance cleared — all dues marked as settled");
+            } catch (e: any) { toast.error('Something went wrong. Please try again.'); }
+            finally { setActionId(null); }
+          });
+        },
+      },
+      cancel: { label: "Cancel", onClick: () => {} },
     });
   }
 
   function handleDelete() {
-    if (!confirm(`Delete ${c.name}? Their order history will be kept but unlinked.`)) return;
-    setActionId("delete");
-    start(async () => {
-      try {
-        await deleteCustomer(c.id);
-        toast.success("Customer deleted");
-      } catch (e: any) { toast.error(e.message); }
-      finally { setActionId(null); }
+    toast(`Delete ${c.name}?`, {
+      description: "Their order history will be kept but unlinked.",
+      action: {
+        label: "Delete",
+        onClick: () => {
+          setActionId("delete");
+          start(async () => {
+            try {
+              await deleteCustomer(c.id);
+              toast.success("Customer removed");
+            } catch (e: any) { toast.error('Something went wrong. Please try again.'); }
+            finally { setActionId(null); }
+          });
+        },
+      },
+      cancel: { label: "Cancel", onClick: () => {} },
     });
   }
 

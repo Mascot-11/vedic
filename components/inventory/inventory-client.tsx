@@ -26,13 +26,13 @@ function ThresholdEditor({ b, onDone }: { b: BrewingStock; onDone: () => void })
 
   function save() {
     const n = parseInt(val);
-    if (isNaN(n) || n < 0) { toast.error("Enter a valid number"); return; }
+    if (isNaN(n) || n < 0) { toast.error("Please enter a valid amount"); return; }
     start(async () => {
       try {
         await updateBrewingThreshold(b.bean_type, n);
-        toast.success("Threshold updated");
+        toast.success("Low stock alert level updated");
         onDone();
-      } catch (e: any) { toast.error(e.message); }
+      } catch (e: any) { toast.error('Something went wrong. Please try again.'); }
     });
   }
 
@@ -67,13 +67,13 @@ function AdjustEditor({ b, onDone }: { b: BrewingStock; onDone: () => void }) {
 
   function save() {
     const n = parseInt(delta);
-    if (isNaN(n) || n === 0) { toast.error("Enter a non-zero amount"); return; }
+    if (isNaN(n) || n === 0) { toast.error("Enter the amount to add or remove (e.g. +500 or -200)"); return; }
     start(async () => {
       try {
         await manualStockAdjustment({ bean_type: b.bean_type, change_qty: n, note });
-        toast.success("Stock adjusted");
+        toast.success("Stock updated");
         onDone();
-      } catch (e: any) { toast.error(e.message); }
+      } catch (e: any) { toast.error('Something went wrong. Please try again.'); }
     });
   }
 
@@ -119,17 +119,25 @@ export default function InventoryClient({ brewing, batches, allocations, user }:
   const owner = isOwner(user);
 
   function handleDeleteBatch(id: string) {
-    if (!confirm("Delete this batch? This cannot be undone.")) return;
-    setDeletingId(id);
-    startDelete(async () => {
-      try {
-        await deleteBatch(id);
-        toast.success("Batch deleted");
-      } catch (e: any) {
-        toast.error(e.message);
-      } finally {
-        setDeletingId(null);
-      }
+    toast("Delete this batch?", {
+      description: "Stock allocations will also be removed. This cannot be undone.",
+      action: {
+        label: "Delete",
+        onClick: () => {
+          setDeletingId(id);
+          startDelete(async () => {
+            try {
+              await deleteBatch(id);
+              toast.success("Batch removed");
+            } catch (e: any) {
+              toast.error('Something went wrong. Please try again.');
+            } finally {
+              setDeletingId(null);
+            }
+          });
+        },
+      },
+      cancel: { label: "Cancel", onClick: () => {} },
     });
   }
 

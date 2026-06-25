@@ -1,15 +1,19 @@
+export const revalidate = 60;
+
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser } from "@/lib/auth";
 import CreditClient from "@/components/credit/credit-client";
 
 export default async function CreditPage() {
-  const [user, db] = [await getCurrentUser(), createAdminClient()];
+  const db = createAdminClient();
 
-  const { data: customers } = await db
-    .from("customers")
-    .select(`id, name, created_at,
-      orders(id, total_amount, balance_due, payment_status, opened_at, table:tables(label))`)
-    .order("name");
+  const [user, { data: customers }] = await Promise.all([
+    getCurrentUser(),
+    db.from("customers")
+      .select(`id, name, created_at,
+        orders(id, total_amount, balance_due, payment_status, opened_at, table:tables(label))`)
+      .order("name"),
+  ]);
 
   const customersWithBalance = (customers ?? []).map((c) => ({
     ...c,

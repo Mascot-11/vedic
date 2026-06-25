@@ -55,7 +55,7 @@ export default function AddItemSheet({ orderId, products, onClose }: Props) {
       try {
         // Always try the live server action first
         await addItemToOrder(orderId, product.id, product.product_type, q);
-        toast.success(`${product.name} added`);
+        toast.success(`${product.name} added to order`);
         setOffline(false);
         setQty((prev) => ({ ...prev, [product.id]: 1 }));
       } catch (e: any) {
@@ -68,14 +68,14 @@ export default function AddItemSheet({ orderId, products, onClose }: Props) {
             qty: q,
           });
           setOffline(true);
-          toast(`${product.name} ×${q} queued — will sync when online`, {
+          toast(`${product.name} ×${q} saved — will appear once internet is back`, {
             icon: <WifiOff className="h-4 w-4 text-amber-500" />,
             duration: 4000,
           });
           setQty((prev) => ({ ...prev, [product.id]: 1 }));
         } else {
           // Real server error (e.g. insufficient stock)
-          toast.error(e.message);
+          toast.error(e.message?.includes("stock") ? "Not enough stock available" : "Couldn't add item. Try again.");
         }
       } finally {
         setAdding(null);

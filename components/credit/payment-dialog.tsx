@@ -62,7 +62,7 @@ export default function PaymentDialog({ customer, user, onClose }: Props) {
 
   function handleSubmit() {
     if (amount <= 0) {
-      toast.error("Enter a payment amount.");
+      toast.error("Please enter how much was paid");
       return;
     }
     const allocations = Object.entries(effectiveAlloc)
@@ -78,10 +78,10 @@ export default function PaymentDialog({ customer, user, onClose }: Props) {
           note,
           allocations,
         });
-        toast.success("Payment recorded");
+        toast.success("Payment saved successfully");
         onClose();
       } catch (e: any) {
-        toast.error(e.message);
+        toast.error("Couldn't save payment. Please try again.");
       }
     });
   }

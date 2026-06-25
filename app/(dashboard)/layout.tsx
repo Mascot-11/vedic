@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 import Sidebar from "@/components/sidebar";
 import BottomNav from "@/components/bottom-nav";
 import OfflineProvider from "@/components/offline-provider";
+import ProgressBar from "@/components/progress-bar";
 
 export default async function DashboardLayout({
   children,
@@ -16,6 +17,7 @@ export default async function DashboardLayout({
 
   return (
     <OfflineProvider>
+      <ProgressBar />
       <div className="flex min-h-screen bg-stone-50">
         {/* Sidebar: desktop only */}
         <div className="hidden md:flex md:shrink-0">

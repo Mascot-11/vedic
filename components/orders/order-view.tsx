@@ -39,8 +39,8 @@ export default function OrderView({ order, products, user, settings }: Props) {
     startRemove(async () => {
       try { await removeOrderItem(order.id, itemId); }
       catch (e: any) {
-        if (isNetworkError(e)) toast.error("You're offline — can't remove items right now");
-        else toast.error(e.message);
+        if (isNetworkError(e)) toast.error("No internet — item can't be removed right now");
+        else toast.error("Something went wrong. Try again.");
       } finally { setRemovingId(null); }
     });
   }
@@ -53,8 +53,8 @@ export default function OrderView({ order, products, user, settings }: Props) {
         if (newQty === 0) await removeOrderItem(order.id, itemId);
         else await updateOrderItemQty(order.id, itemId, newQty);
       } catch (e: any) {
-        if (isNetworkError(e)) toast.error("You're offline");
-        else toast.error(e.message);
+        if (isNetworkError(e)) toast.error("No internet — quantity can't be changed right now");
+        else toast.error("Something went wrong. Try again.");
       } finally { setUpdatingId(null); }
     });
   }

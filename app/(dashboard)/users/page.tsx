@@ -1,3 +1,5 @@
+export const revalidate = 300;
+
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
@@ -8,8 +10,6 @@ export default async function UsersPage() {
   if (!user || user.role === "staff") redirect("/");
 
   const db = createAdminClient();
-
-  // Owners can only see staff — superadmin sees everyone
   const usersQuery = db.from("users").select("*").order("name");
   if (user.role === "owner") usersQuery.neq("role", "superadmin");
 
@@ -18,7 +18,6 @@ export default async function UsersPage() {
     db.auth.admin.listUsers(),
   ]);
 
-  // Map auth_id → email for display
   const emailByAuthId = Object.fromEntries(
     (authList?.users ?? []).map((u) => [u.id, u.email ?? ""])
   );
@@ -30,7 +29,7 @@ export default async function UsersPage() {
 
   return (
     <div className="p-4">
-      <h1 className="text-xl font-semibold text-stone-900 mb-6">Users</h1>
+      <h1 className="text-xl font-semibold text-stone-900 mb-5">Users</h1>
       <UsersClient users={usersWithEmail} currentUser={user} />
     </div>
   );

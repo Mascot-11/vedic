@@ -37,11 +37,11 @@ export default function UsersClient({ users: initial, currentUser }: Props) {
     start(async () => {
       try {
         await createUser({ name, email, password, role });
-        toast.success(`${name} added as ${role}`);
+        toast.success(`${name} added — they can now log in`);
         setUsers((prev) => [...prev, { id: crypto.randomUUID(), name, email, role, auth_id: "", active: true, created_at: new Date().toISOString() }]);
         setShowAdd(false);
         setName(""); setEmail(""); setPassword(""); setRole("staff");
-      } catch (e: any) { toast.error(e.message); }
+      } catch (e: any) { toast.error('Something went wrong. Please try again.'); }
     });
   }
 
@@ -50,21 +50,29 @@ export default function UsersClient({ users: initial, currentUser }: Props) {
       try {
         await toggleUserActive(u.id, !u.active);
         setUsers((prev) => prev.map((x) => x.id === u.id ? { ...x, active: !u.active } : x));
-        toast.success(`${u.name} ${!u.active ? "activated" : "deactivated"}`);
-      } catch (e: any) { toast.error(e.message); }
+        toast.success(`${u.name} ${!u.active ? "can now log in again" : "has been blocked from logging in"}`);
+      } catch (e: any) { toast.error('Something went wrong. Please try again.'); }
     });
   }
 
   function handleDelete(u: UserWithEmail) {
-    if (!confirm(`Permanently delete ${u.name}? This cannot be undone.`)) return;
-    setDeletingId(u.id);
-    start(async () => {
-      try {
-        await deleteUser(u.id);
-        setUsers((prev) => prev.filter((x) => x.id !== u.id));
-        toast.success(`${u.name} deleted`);
-      } catch (e: any) { toast.error(e.message); }
-      finally { setDeletingId(null); }
+    toast(`Delete ${u.name}?`, {
+      description: "This cannot be undone.",
+      action: {
+        label: "Delete",
+        onClick: () => {
+          setDeletingId(u.id);
+          start(async () => {
+            try {
+              await deleteUser(u.id);
+              setUsers((prev) => prev.filter((x) => x.id !== u.id));
+              toast.success(`${u.name} removed`);
+            } catch (e: any) { toast.error('Something went wrong. Please try again.'); }
+            finally { setDeletingId(null); }
+          });
+        },
+      },
+      cancel: { label: "Cancel", onClick: () => {} },
     });
   }
 

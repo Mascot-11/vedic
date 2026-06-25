@@ -51,11 +51,11 @@ export default function DrinkProductDialog({ product, beanTypes, onClose }: Prop
 
   function onSubmit(data: FormData) {
     if (data.is_coffee && !data.bean_type_used) {
-      toast.error("Select a bean type for coffee drinks.");
+      toast.error("Please choose which beans this drink uses");
       return;
     }
     if (data.is_coffee && (!data.grams_per_serving || data.grams_per_serving <= 0)) {
-      toast.error("Enter grams per serving for coffee drinks.");
+      toast.error("Please enter how many grams per cup");
       return;
     }
     startTransition(async () => {
@@ -69,10 +69,10 @@ export default function DrinkProductDialog({ product, beanTypes, onClose }: Prop
           price: data.price,
           active: data.active,
         });
-        toast.success(product ? "Product updated" : "Product created");
+        toast.success(product ? "Changes saved" : "Product added");
         onClose();
       } catch (e: any) {
-        toast.error(e.message);
+        toast.error('Something went wrong. Please try again.');
       }
     });
   }

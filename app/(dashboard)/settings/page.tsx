@@ -1,3 +1,5 @@
+export const revalidate = 300;
+
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
@@ -15,7 +17,7 @@ export default async function SettingsPage() {
 
   return (
     <div className="p-4">
-      <h1 className="text-xl font-semibold text-stone-900 mb-6">Settings</h1>
+      <h1 className="text-xl font-semibold text-stone-900 mb-5">Settings</h1>
       <SettingsClient
         settings={settings}
         tables={tables ?? []}

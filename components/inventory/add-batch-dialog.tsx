@@ -38,10 +38,10 @@ export default function AddBatchDialog({ onClose }: { onClose: () => void }) {
           remarks:     data.remarks,
           total_grams: data.total_grams,
         });
-        toast.success("Batch added to brewing stock");
+        toast.success('New batch added to stock');
         onClose();
       } catch (e: any) {
-        toast.error(e.message);
+        toast.error('Something went wrong. Please try again.');
       }
     });
   }

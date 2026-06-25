@@ -83,15 +83,15 @@ export default function CloseOrderDialog({ order, user, settings, onClose }: Pro
 
   function handleSubmit() {
     if (discountAmount > discountCap && !canApplyUnlimitedDiscount) {
-      toast.error(`Discount cannot exceed Rs. ${discountCap} for your role.`);
+      toast.error(`Discount can't be more than Rs. ${discountCap}`);
       return;
     }
     if (discountAmount > order.subtotal_amount) {
-      toast.error("Discount cannot exceed the order subtotal.");
+      toast.error("Discount can't be more than the total bill");
       return;
     }
     if (tab === "credit" && !customerId) {
-      toast.error("Please select or register a customer.");
+      toast.error("Please pick a customer first");
       return;
     }
     startTransition(async () => {
@@ -111,7 +111,7 @@ export default function CloseOrderDialog({ order, user, settings, onClose }: Pro
             customerId: customerId ?? null,
             amountPaid,
           });
-          toast("Order close queued — will sync when online", {
+          toast("Bill saved — will finish closing when internet is back", {
             icon: <WifiOff className="h-4 w-4 text-amber-500" />,
           });
           onClose();

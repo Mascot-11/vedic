@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { createTable, renameTable, toggleTableActive } from "@/app/actions/tables";
 import { Table } from "@/lib/types";
-import { Pencil, Plus, PowerOff, Power, Check, X } from "lucide-react";
+import { Pencil, Plus, PowerOff, Power, Check, X, Loader2 } from "lucide-react";
 
 const schema = z.object({
   business_name: z.string().min(1),
@@ -42,7 +42,7 @@ function TableRow({ table, onSaved }: { table: Table; onSaved: () => void }) {
         toast.success("Table renamed");
         setEditing(false);
         onSaved();
-      } catch (e: any) { toast.error(e.message); }
+      } catch (e: any) { toast.error('Something went wrong. Please try again.'); }
     });
   }
 
@@ -52,12 +52,12 @@ function TableRow({ table, onSaved }: { table: Table; onSaved: () => void }) {
         await toggleTableActive(table.id, !table.active);
         toast.success(table.active ? "Table removed" : "Table restored");
         onSaved();
-      } catch (e: any) { toast.error(e.message); }
+      } catch (e: any) { toast.error('Something went wrong. Please try again.'); }
     });
   }
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3">
+    <div className={`flex items-center gap-3 px-4 py-3 ${pending ? "opacity-60" : ""}`}>
       <div className="flex-1 min-w-0">
         {editing ? (
           <div className="flex items-center gap-2">
@@ -68,10 +68,18 @@ function TableRow({ table, onSaved }: { table: Table; onSaved: () => void }) {
               autoFocus
               onKeyDown={(e) => { if (e.key === "Enter") handleRename(); if (e.key === "Escape") setEditing(false); }}
             />
-            <button onClick={handleRename} disabled={pending} className="h-9 w-9 flex items-center justify-center text-green-600">
-              <Check className="h-4 w-4" />
+            <button
+              onClick={handleRename}
+              disabled={pending}
+              className="h-9 w-9 flex items-center justify-center text-green-600 disabled:opacity-50"
+            >
+              {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
             </button>
-            <button onClick={() => { setEditing(false); setLabel(table.label); }} className="h-9 w-9 flex items-center justify-center text-stone-400">
+            <button
+              onClick={() => { setEditing(false); setLabel(table.label); }}
+              disabled={pending}
+              className="h-9 w-9 flex items-center justify-center text-stone-400"
+            >
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -87,7 +95,11 @@ function TableRow({ table, onSaved }: { table: Table; onSaved: () => void }) {
       {!editing && (
         <div className="flex items-center gap-1 shrink-0">
           {table.active && (
-            <button onClick={() => setEditing(true)} className="h-10 w-10 flex items-center justify-center rounded-xl text-stone-400 hover:text-stone-700 hover:bg-stone-100">
+            <button
+              onClick={() => setEditing(true)}
+              disabled={pending}
+              className="h-10 w-10 flex items-center justify-center rounded-xl text-stone-400 hover:text-stone-700 hover:bg-stone-100"
+            >
               <Pencil className="h-4 w-4" />
             </button>
           )}
@@ -96,7 +108,11 @@ function TableRow({ table, onSaved }: { table: Table; onSaved: () => void }) {
             disabled={pending}
             className="h-10 w-10 flex items-center justify-center rounded-xl text-stone-400 hover:text-stone-700 hover:bg-stone-100"
           >
-            {table.active ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4 text-green-600" />}
+            {pending
+              ? <Loader2 className="h-4 w-4 animate-spin" />
+              : table.active
+                ? <PowerOff className="h-4 w-4" />
+                : <Power className="h-4 w-4 text-green-600" />}
           </button>
         </div>
       )}
@@ -127,7 +143,7 @@ export default function SettingsClient({ settings, tables: initialTables, canEdi
       const { error } = settings
         ? await supabase.from("shop_settings").update(data).eq("id", settings.id)
         : await supabase.from("shop_settings").insert(data);
-      if (error) toast.error(error.message);
+      if (error) toast.error("Couldn't save settings. Please try again.");
       else toast.success("Settings saved");
     });
   }
@@ -139,9 +155,8 @@ export default function SettingsClient({ settings, tables: initialTables, canEdi
         await createTable(newLabel);
         toast.success(`"${newLabel.trim()}" added`);
         setNewLabel("");
-        // Refresh from server handled by revalidatePath; optimistic update:
         setTables((prev) => [...prev, { id: crypto.randomUUID(), label: newLabel.trim(), active: true }]);
-      } catch (e: any) { toast.error(e.message); }
+      } catch (e: any) { toast.error('Something went wrong. Please try again.'); }
     });
   }
 
@@ -152,9 +167,7 @@ export default function SettingsClient({ settings, tables: initialTables, canEdi
         {canEditShop && <TabsTrigger value="shop">Shop Config</TabsTrigger>}
       </TabsList>
 
-      {/* ── Tables ── */}
       <TabsContent value="tables" className="mt-4 space-y-4">
-        {/* Add new table */}
         <div className="flex gap-2">
           <Input
             placeholder="e.g. Table 8 or Patio 1"
@@ -162,9 +175,11 @@ export default function SettingsClient({ settings, tables: initialTables, canEdi
             onChange={(e) => setNewLabel(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAddTable()}
             className="flex-1"
+            disabled={addPending}
           />
           <Button onClick={handleAddTable} disabled={addPending || !newLabel.trim()}>
-            <Plus className="h-4 w-4 mr-1" /> Add
+            {addPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4 mr-1" />}
+            {addPending ? "Adding…" : "Add"}
           </Button>
         </div>
 
@@ -178,7 +193,6 @@ export default function SettingsClient({ settings, tables: initialTables, canEdi
         </div>
       </TabsContent>
 
-      {/* ── Shop Config (superadmin only) ── */}
       {canEditShop && (
         <TabsContent value="shop" className="mt-4">
           <form onSubmit={handleSubmit(onSaveSettings)} className="space-y-4 bg-white rounded-xl border border-stone-200 p-5">
@@ -204,7 +218,8 @@ export default function SettingsClient({ settings, tables: initialTables, canEdi
               <Label>Default Low Stock Threshold (grams)</Label>
               <Input type="number" {...register("low_stock_default_threshold")} />
             </div>
-            <Button type="submit" disabled={savePending}>
+            <Button type="submit" disabled={savePending} className="w-full sm:w-auto">
+              {savePending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {savePending ? "Saving…" : "Save Settings"}
             </Button>
           </form>

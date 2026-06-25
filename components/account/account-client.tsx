@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { changePassword } from "@/app/actions/users";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 
 interface Props {
   user: User;
@@ -30,20 +30,20 @@ export default function AccountClient({ user }: Props) {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (next.length < 8) {
-      toast.error("Password must be at least 8 characters.");
+      toast.error("Password must be at least 8 characters long");
       return;
     }
     if (next !== confirm) {
-      toast.error("New passwords do not match.");
+      toast.error("The two passwords don't match — please check");
       return;
     }
     startTransition(async () => {
       try {
         await changePassword(next);
-        toast.success("Password updated successfully.");
+        toast.success("Password changed — you're all set");
         setCurrent(""); setNext(""); setConfirm("");
       } catch (e: any) {
-        toast.error(e.message);
+        toast.error('Something went wrong. Please try again.');
       }
     });
   }
@@ -109,6 +109,7 @@ export default function AccountClient({ user }: Props) {
               type="submit"
               disabled={pending || !next || !confirm || next !== confirm}
             >
+              {pending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {pending ? "Updating…" : "Update Password"}
             </Button>
           </div>

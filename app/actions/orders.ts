@@ -128,6 +128,8 @@ export async function closeOrderAsPaid(
   if (error) throw new Error(error.message);
 
   revalidatePath("/");
+  revalidatePath("/orders");
+  revalidatePath("/reports");
   revalidatePath(`/orders/${orderId}`);
   redirect("/");
 }
@@ -155,6 +157,9 @@ export async function closeOrderAsCredit(
   if (error) throw new Error(error.message);
 
   revalidatePath("/");
+  revalidatePath("/orders");
+  revalidatePath("/reports");
+  revalidatePath("/credit");
   revalidatePath(`/orders/${orderId}`);
   redirect("/");
 }
